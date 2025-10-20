@@ -1,0 +1,548 @@
+---
+// src/pages/es/donate.astro
+import { translations } from '../../i18n/translations';
+import Layout from '../../layouts/layout.astro';
+
+const t = translations.es;
+---
+
+<Layout title="Donar - Buscar Campañas" lang="es">
+  <section class="donate-hero">
+    <div class="hero-content">
+      <h1 data-animate>{t.donate.title}</h1>
+      <p data-animate style="animation-delay: 0.1s;">{t.donate.subtitle}</p>
+    </div>
+  </section>
+
+  <section class="search-section">
+    <div class="container">
+      <div class="search-box glass" data-animate style="animation-delay: 0.2s;">
+        <div class="search-input-wrapper">
+          <svg class="search-icon" width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
+            <path d="M21 21L16.65 16.65" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <input 
+            type="text" 
+            id="searchInput" 
+            placeholder={t.donate.searchPlaceholder}
+            class="search-input"
+          />
+        </div>
+        <button id="searchButton" class="search-button">
+          <span>{t.donate.searchButton}</span>
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path d="M4 10H16M16 10L10 4M16 10L10 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+
+      <div id="results" class="results-container">
+        <div class="empty-state">
+          <svg width="80" height="80" viewBox="0 0 80 80" fill="none" class="empty-icon">
+            <circle cx="35" cy="35" r="20" stroke="currentColor" stroke-width="3" opacity="0.3"/>
+            <path d="M52 52L65 65" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+          </svg>
+          <p class="help-text">{t.donate.helpText}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</Layout>
+
+<script>
+  import { supabase } from '../../lib/supabase';
+  import { formatCurrency, calculateProgress, getCountryFlag } from '../../lib/utils';
+
+  const searchInput = document.getElementById('searchInput') as HTMLInputElement;
+  const searchButton = document.getElementById('searchButton') as HTMLButtonElement;
+  const resultsContainer = document.getElementById('results') as HTMLDivElement;
+
+  const currentLang = document.documentElement.lang as 'en' | 'es';
+  const isSpanish = currentLang === 'es';
+
+  const texts = {
+    minChars: isSpanish ? 'Ingresa al menos 2 caracteres para buscar' : 'Enter at least 2 characters to search',
+    searching: isSpanish ? 'Buscando campañas...' : 'Searching campaigns...',
+    noResults: isSpanish ? 'No se encontraron campañas con' : 'No campaigns found with',
+    tryAgain: isSpanish ? 'Intenta con otro término de búsqueda' : 'Try another search term',
+    resultsFound: isSpanish ? 'campaña(s) encontrada(s)' : 'campaign(s) found',
+    errorSearching: isSpanish ? 'Error al buscar campañas. Intenta de nuevo.' : 'Error searching campaigns. Please try again.',
+  };
+
+  async function searchCampaigns(query: string) {
+    if (!query || query.trim().length < 2) {
+      resultsContainer.innerHTML = `
+        <div class="empty-state">
+          <svg width="80" height="80" viewBox="0 0 80 80" fill="none" class="empty-icon">
+            <circle cx="35" cy="35" r="20" stroke="currentColor" stroke-width="3" opacity="0.3"/>
+            <path d="M52 52L65 65" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+          </svg>
+          <p class="help-text">${texts.minChars}</p>
+        </div>
+      `;
+      return;
+    }
+
+    resultsContainer.innerHTML = `
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p>${texts.searching}</p>
+      </div>
+    `;
+
+    try {
+      const { data: campaigns, error } = await supabase
+        .from('campaigns')
+        .select(`
+          id,
+          title,
+          description,
+          country,
+          goal_amount,
+          current_amount,
+          currency,
+          images:campaign_images(image_url, is_primary)
+        `)
+        .eq('status', 'active')
+        .ilike('title', `%${query}%`)
+        .limit(10);
+
+      if (error) throw error;
+
+      if (!campaigns || campaigns.length === 0) {
+        resultsContainer.innerHTML = `
+          <div class="no-results">
+            <svg width="80" height="80" viewBox="0 0 80 80" fill="none" class="empty-icon">
+              <circle cx="40" cy="40" r="30" stroke="currentColor" stroke-width="3" opacity="0.3"/>
+              <path d="M30 35H50M35 50H45" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+            </svg>
+            <p>${texts.noResults} "<strong>${query}</strong>"</p>
+            <p class="help-text">${texts.tryAgain}</p>
+          </div>
+        `;
+        return;
+      }
+
+      const html = campaigns.map((campaign: any) => {
+        const progress = calculateProgress(campaign.current_amount, campaign.goal_amount);
+        const primaryImage = campaign.images?.find((img: any) => img.is_primary)?.image_url 
+          || campaign.images?.[0]?.image_url 
+          || 'https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=800&q=80';
+
+        return `
+          <a href="/campaign/${campaign.id}" class="campaign-card glass">
+            <div class="card-image-wrapper">
+              <div class="card-image" style="background-image: url('${primaryImage}')">
+                <div class="image-overlay"></div>
+              </div>
+              <span class="country-badge">${getCountryFlag(campaign.country)} ${campaign.country}</span>
+            </div>
+            
+            <div class="card-content">
+              <h3 class="card-title">${campaign.title}</h3>
+              <p class="card-description">${campaign.description?.substring(0, 120) || ''}...</p>
+              
+              <div class="card-progress">
+                <div class="progress-bar">
+                  <div class="progress-fill" style="width: ${progress}%"></div>
+                </div>
+                <div class="progress-label">
+                  <span>${progress}% ${isSpanish ? 'recaudado' : 'raised'}</span>
+                </div>
+              </div>
+              
+              <div class="card-stats">
+                <div class="stat">
+                  <div class="stat-value">${formatCurrency(campaign.current_amount, campaign.currency)}</div>
+                  <div class="stat-label">${isSpanish ? 'recaudado' : 'raised'}</div>
+                </div>
+                <div class="stat">
+                  <div class="stat-value">${formatCurrency(campaign.goal_amount, campaign.currency)}</div>
+                  <div class="stat-label">${isSpanish ? 'meta' : 'goal'}</div>
+                </div>
+              </div>
+            </div>
+          </a>
+        `;
+      }).join('');
+
+      resultsContainer.innerHTML = `
+        <p class="results-count">${campaigns.length} ${texts.resultsFound}</p>
+        <div class="campaigns-grid">${html}</div>
+      `;
+    } catch (error) {
+      console.error('Error searching:', error);
+      resultsContainer.innerHTML = `
+        <div class="error-state">
+          <svg width="80" height="80" viewBox="0 0 80 80" fill="none" class="empty-icon">
+            <circle cx="40" cy="40" r="30" stroke="currentColor" stroke-width="3" opacity="0.3"/>
+            <path d="M40 25V45M40 55V57" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+          </svg>
+          <p class="error-text">${texts.errorSearching}</p>
+        </div>
+      `;
+    }
+  }
+
+  searchButton?.addEventListener('click', () => {
+    searchCampaigns(searchInput.value);
+  });
+
+  searchInput?.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      searchCampaigns(searchInput.value);
+    }
+  });
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('animate-in');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('[data-animate]').forEach(el => {
+    observer.observe(el);
+  });
+</script>
+
+<style>
+  /* Copiar TODO el CSS de donate.astro aquí */
+  .donate-hero {
+    padding: 6rem 2rem 4rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .donate-hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(0, 122, 255, 0.15) 0%, transparent 70%);
+    filter: blur(60px);
+    z-index: 0;
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 1;
+    max-width: 800px;
+    margin: 0 auto;
+    color: white;
+  }
+
+  .hero-content h1 {
+    font-size: clamp(2.5rem, 5vw, 3.5rem);
+    font-weight: 800;
+    margin-bottom: 1rem;
+    letter-spacing: -0.02em;
+  }
+
+  .hero-content p {
+    font-size: clamp(1.125rem, 2vw, 1.5rem);
+    color: rgba(255, 255, 255, 0.8);
+  }
+
+  .search-section {
+    padding: 2rem 0 6rem;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+  }
+
+  .search-box {
+    display: flex;
+    gap: 1rem;
+    max-width: 900px;
+    margin: 0 auto 4rem;
+    padding: 1rem;
+    border-radius: var(--radius-xl);
+    align-items: center;
+  }
+
+  .search-input-wrapper {
+    flex: 1;
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .search-icon {
+    position: absolute;
+    left: 1.5rem;
+    color: rgba(255, 255, 255, 0.5);
+    pointer-events: none;
+  }
+
+  .search-input {
+    width: 100%;
+    padding: 1.25rem 1.5rem 1.25rem 4rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-md);
+    color: white;
+    font-size: 1.125rem;
+    outline: none;
+    transition: all var(--transition-base);
+  }
+
+  .search-input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+  }
+
+  .search-input:focus {
+    border-color: var(--blue-primary);
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  .search-button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1.25rem 2rem;
+    background: var(--blue-primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: 1.125rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-base);
+    white-space: nowrap;
+  }
+
+  .search-button:hover {
+    background: var(--blue-light);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 122, 255, 0.3);
+  }
+
+  .results-container {
+    min-height: 400px;
+  }
+
+  .empty-state,
+  .loading-state,
+  .no-results,
+  .error-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 2rem;
+    text-align: center;
+    color: white;
+  }
+
+  .empty-icon {
+    color: rgba(255, 255, 255, 0.3);
+    margin-bottom: 2rem;
+  }
+
+  .help-text {
+    font-size: 1.125rem;
+    color: rgba(255, 255, 255, 0.6);
+  }
+
+  .loading-state {
+    gap: 1.5rem;
+  }
+
+  .spinner {
+    width: 50px;
+    height: 50px;
+    border: 3px solid rgba(255, 255, 255, 0.1);
+    border-top-color: var(--blue-primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .no-results strong {
+    color: var(--blue-primary);
+  }
+
+  .error-text {
+    color: var(--error);
+    font-size: 1.125rem;
+  }
+
+  .results-count {
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 2rem;
+    font-size: 1.125rem;
+    font-weight: 500;
+  }
+
+  .campaigns-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 2rem;
+  }
+
+  .campaign-card {
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    transition: all var(--transition-slow);
+    text-decoration: none;
+    color: inherit;
+    display: block;
+  }
+
+  .campaign-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 16px 48px rgba(0, 122, 255, 0.2);
+  }
+
+  .card-image-wrapper {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card-image {
+    width: 100%;
+    height: 240px;
+    background-size: cover;
+    background-position: center;
+    position: relative;
+    transition: transform var(--transition-slow);
+  }
+
+  .campaign-card:hover .card-image {
+    transform: scale(1.05);
+  }
+
+  .image-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.3) 100%);
+  }
+
+  .country-badge {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-full);
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--navy-primary);
+    z-index: 1;
+  }
+
+  .card-content {
+    padding: 2rem;
+    color: white;
+  }
+
+  .card-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    line-height: 1.3;
+  }
+
+  .card-description {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 1rem;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+  }
+
+  .card-progress {
+    margin-bottom: 1.5rem;
+  }
+
+  .progress-bar {
+    width: 100%;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--success) 0%, #22C55E 100%);
+    transition: width var(--transition-slow);
+  }
+
+  .progress-label {
+    display: flex;
+    justify-content: flex-end;
+    font-size: 0.875rem;
+    color: rgba(255, 255, 255, 0.6);
+    font-weight: 500;
+  }
+
+  .card-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+  }
+
+  .stat {
+    text-align: center;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: var(--radius-md);
+  }
+
+  .stat-value {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 0.25rem;
+  }
+
+  .stat-label {
+    font-size: 0.875rem;
+    color: rgba(255, 255, 255, 0.6);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  [data-animate] {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+
+  [data-animate].animate-in {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  @media (max-width: 768px) {
+    .search-box {
+      flex-direction: column;
+      padding: 0.75rem;
+    }
+
+    .search-button {
+      width: 100%;
+      justify-content: center;
+    }
+
+    .campaigns-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
