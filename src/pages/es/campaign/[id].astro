@@ -1,9 +1,8 @@
 ---
-export const prerender = false;
+import { translations } from "../../../i18n/translations";
+import Layout from "../../../layouts/layout.astro";
 
-import { translations } from '../../i18n/translations';
-import Layout from '../../layouts/layout.astro';
-import { supabase } from '../../lib/supabase';
+export const prerender = false;
 
 const { id } = Astro.params;
 // 🌍 Auto-detect browser language
@@ -1168,4 +1167,5 @@ const diagnosisImages = campaign.images?.filter((img: any) => img.image_type ===
     alert('Donation canceled. Feel free to try again.');
     window.history.replaceState({}, '', window.location.pathname);
   }
+  
 </script>
