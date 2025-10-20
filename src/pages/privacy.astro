@@ -1,0 +1,604 @@
+---
+import { translations } from "../i18n/translations";
+import Layout from "../layouts/layout.astro";
+
+// src/pages/privacy.astro
+
+
+const lang = 'en';
+const t = translations[lang].privacy;
+---
+
+<Layout 
+  title={t.pageTitle} 
+  description={t.pageDescription}
+  lang={lang}
+>
+  <!-- Background Orbs -->
+  <div class="orbs">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+  </div>
+
+  <!-- Breadcrumb -->
+  <div class="breadcrumb container">
+    <a href="/">{t.breadcrumbHome}</a>
+    <span class="separator">›</span>
+    <span>{t.breadcrumbPrivacy}</span>
+  </div>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-content" data-animate>
+        <h1>{t.title}</h1>
+        <p class="subtitle">{t.subtitle}</p>
+        <div class="meta">
+          <span class="last-updated">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+              <path d="M12 6V12L16 14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            {t.lastUpdated}: January 15, 2025
+          </span>
+          <button class="download-pdf">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M7 10L12 15L17 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M12 15V3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            {t.downloadPdf}
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Privacy Content -->
+  <section class="privacy-content">
+    <div class="container">
+      <div class="content-wrapper">
+        
+        <!-- Sidebar - Desktop -->
+        <aside class="sidebar" id="sidebar">
+          <div class="sidebar-inner glass">
+            <h3>{t.tableOfContents}</h3>
+            <nav class="toc">
+              <a href="#section-1" class="toc-link active">1. Information We Collect</a>
+              <a href="#section-2" class="toc-link">2. How We Use Your Information</a>
+              <a href="#section-3" class="toc-link">3. Information Sharing</a>
+              <a href="#section-4" class="toc-link">4. Data Security</a>
+              <a href="#section-5" class="toc-link">5. Data Retention</a>
+              <a href="#section-6" class="toc-link">6. Your Rights</a>
+              <a href="#section-7" class="toc-link">7. Cookies & Tracking</a>
+              <a href="#section-8" class="toc-link">8. International Transfers</a>
+              <a href="#section-9" class="toc-link">9. Children's Privacy</a>
+              <a href="#section-10" class="toc-link">10. Third-Party Services</a>
+              <a href="#section-11" class="toc-link">11. Policy Changes</a>
+              <a href="#section-12" class="toc-link">12. Contact Us</a>
+            </nav>
+          </div>
+        </aside>
+
+        <!-- Mobile TOC Dropdown -->
+        <div class="mobile-toc">
+          <button class="mobile-toc-toggle glass" id="mobile-toc-toggle">
+            <span>Jump to section</span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <div class="mobile-toc-dropdown glass" id="mobile-toc-dropdown">
+            <a href="#section-1" class="toc-link">1. Information We Collect</a>
+            <a href="#section-2" class="toc-link">2. How We Use Your Information</a>
+            <a href="#section-3" class="toc-link">3. Information Sharing</a>
+            <a href="#section-4" class="toc-link">4. Data Security</a>
+            <a href="#section-5" class="toc-link">5. Data Retention</a>
+            <a href="#section-6" class="toc-link">6. Your Rights</a>
+            <a href="#section-7" class="toc-link">7. Cookies & Tracking</a>
+            <a href="#section-8" class="toc-link">8. International Transfers</a>
+            <a href="#section-9" class="toc-link">9. Children's Privacy</a>
+            <a href="#section-10" class="toc-link">10. Third-Party Services</a>
+            <a href="#section-11" class="toc-link">11. Policy Changes</a>
+            <a href="#section-12" class="toc-link">12. Contact Us</a>
+          </div>
+        </div>
+
+        <!-- Content Sections -->
+        <main class="main-content">
+          
+          <section id="section-1" class="content-section glass" data-animate>
+            <h2>{t.section1.title}</h2>
+            <div class="section-content">
+              {t.section1.content.split('\n\n').map(p => <p>{p}</p>)}
+            </div>
+          </section>
+
+          <section id="section-2" class="content-section glass" data-animate>
+            <h2>{t.section2.title}</h2>
+            <div class="section-content">
+              {t.section2.content.split('\n\n').map(p => <p>{p}</p>)}
+            </div>
+          </section>
+
+          <section id="section-3" class="content-section glass" data-animate>
+            <h2>{t.section3.title}</h2>
+            <div class="section-content">
+              {t.section3.content.split('\n\n').map(p => <p>{p}</p>)}
+            </div>
+          </section>
+
+          <section id="section-4" class="content-section glass" data-animate>
+            <h2>{t.section4.title}</h2>
+            <div class="section-content">
+              {t.section4.content.split('\n\n').map(p => <p>{p}</p>)}
+            </div>
+          </section>
+
+          <section id="section-5" class="content-section glass" data-animate>
+            <h2>{t.section5.title}</h2>
+            <div class="section-content">
+              {t.section5.content.split('\n\n').map(p => <p>{p}</p>)}
+            </div>
+          </section>
+
+          <section id="section-6" class="content-section glass" data-animate>
+            <h2>{t.section6.title}</h2>
+            <div class="section-content">
+              {t.section6.content.split('\n\n').map(p => <p>{p}</p>)}
+            </div>
+          </section>
+
+          <section id="section-7" class="content-section glass" data-animate>
+            <h2>{t.section7.title}</h2>
+            <div class="section-content">
+              {t.section7.content.split('\n\n').map(p => <p>{p}</p>)}
+            </div>
+          </section>
+
+          <section id="section-8" class="content-section glass" data-animate>
+            <h2>{t.section8.title}</h2>
+            <div class="section-content">
+              {t.section8.content.split('\n\n').map(p => <p>{p}</p>)}
+            </div>
+          </section>
+
+          <section id="section-9" class="content-section glass" data-animate>
+            <h2>{t.section9.title}</h2>
+            <div class="section-content">
+              {t.section9.content.split('\n\n').map(p => <p>{p}</p>)}
+            </div>
+          </section>
+
+          <section id="section-10" class="content-section glass" data-animate>
+            <h2>{t.section10.title}</h2>
+            <div class="section-content">
+              {t.section10.content.split('\n\n').map(p => <p>{p}</p>)}
+            </div>
+          </section>
+
+          <section id="section-11" class="content-section glass" data-animate>
+            <h2>{t.section11.title}</h2>
+            <div class="section-content">
+              {t.section11.content.split('\n\n').map(p => <p>{p}</p>)}
+            </div>
+          </section>
+
+          <section id="section-12" class="content-section glass" data-animate>
+            <h2>{t.section12.title}</h2>
+            <div class="section-content">
+              {t.section12.content.split('\n\n').map(p => <p>{p}</p>)}
+            </div>
+          </section>
+
+        </main>
+      </div>
+    </div>
+  </section>
+</Layout>
+
+<style>
+  .orbs {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.4;
+    animation: float 8s ease-in-out infinite;
+  }
+
+  .orb-1 {
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, #007AFF 0%, transparent 70%);
+    top: -100px;
+    right: -100px;
+  }
+
+  .orb-2 {
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, #00D4FF 0%, transparent 70%);
+    bottom: -150px;
+    left: -150px;
+    animation-delay: 2s;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-20px); }
+  }
+
+  .breadcrumb {
+    padding: 2rem 0 1rem;
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+  }
+
+  .breadcrumb a {
+    color: rgba(255, 255, 255, 0.7);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .breadcrumb a:hover {
+    color: var(--blue-primary);
+  }
+
+  .breadcrumb .separator {
+    color: rgba(255, 255, 255, 0.4);
+  }
+
+  .breadcrumb span:last-child {
+    color: white;
+  }
+
+  .hero {
+    padding: 2rem 0 4rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  .hero-content {
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .hero h1 {
+    font-size: clamp(2.5rem, 5vw, 3.5rem);
+    font-weight: 800;
+    color: white;
+    margin-bottom: 1rem;
+    line-height: 1.2;
+  }
+
+  .subtitle {
+    font-size: 1.25rem;
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 2rem;
+    line-height: 1.6;
+  }
+
+  .meta {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+  }
+
+  .last-updated {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.9rem;
+  }
+
+  .last-updated svg {
+    color: var(--blue-primary);
+  }
+
+  .download-pdf {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: rgba(0, 122, 255, 0.1);
+    border: 1px solid rgba(0, 122, 255, 0.3);
+    border-radius: var(--radius-md);
+    color: var(--blue-primary);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .download-pdf:hover {
+    background: rgba(0, 122, 255, 0.2);
+    border-color: var(--blue-primary);
+    transform: translateY(-2px);
+  }
+
+  .privacy-content {
+    padding: 2rem 0 6rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  .content-wrapper {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 3rem;
+    align-items: start;
+  }
+
+  .sidebar {
+    position: sticky;
+    top: 100px;
+  }
+
+  .sidebar-inner {
+    padding: 2rem;
+    border-radius: var(--radius-lg);
+  }
+
+  .sidebar h3 {
+    color: white;
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+  }
+
+  .toc {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .toc-link {
+    color: rgba(255, 255, 255, 0.7);
+    text-decoration: none;
+    font-size: 0.9rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--radius-sm);
+    transition: all 0.2s;
+    border-left: 2px solid transparent;
+  }
+
+  .toc-link:hover {
+    color: white;
+    background: rgba(255, 255, 255, 0.05);
+    border-left-color: var(--blue-primary);
+  }
+
+  .toc-link.active {
+    color: var(--blue-primary);
+    background: rgba(0, 122, 255, 0.1);
+    border-left-color: var(--blue-primary);
+    font-weight: 500;
+  }
+
+  .mobile-toc {
+    display: none;
+    position: relative;
+    margin-bottom: 2rem;
+  }
+
+  .mobile-toc-toggle {
+    width: 100%;
+    padding: 1rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-radius: var(--radius-md);
+    color: white;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.2s;
+  }
+
+  .mobile-toc-toggle:hover {
+    border-color: var(--blue-primary);
+  }
+
+  .mobile-toc-dropdown {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    left: 0;
+    right: 0;
+    padding: 1rem;
+    border-radius: var(--radius-md);
+    display: none;
+    flex-direction: column;
+    gap: 0.25rem;
+    max-height: 400px;
+    overflow-y: auto;
+    z-index: 10;
+  }
+
+  .mobile-toc-dropdown.open {
+    display: flex;
+  }
+
+  .main-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  .content-section {
+    padding: 2.5rem;
+    border-radius: var(--radius-lg);
+    scroll-margin-top: 100px;
+  }
+
+  .content-section h2 {
+    color: white;
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    line-height: 1.3;
+  }
+
+  .section-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .section-content p {
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 1.05rem;
+    line-height: 1.8;
+    white-space: pre-line;
+  }
+
+  .section-content p:first-child::first-line {
+    color: rgba(255, 200, 100, 0.9);
+    font-weight: 500;
+    font-style: italic;
+  }
+
+  [data-animate] {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.6s ease;
+  }
+
+  [data-animate].visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  @media (max-width: 1024px) {
+    .content-wrapper {
+      grid-template-columns: 1fr;
+    }
+
+    .sidebar {
+      display: none;
+    }
+
+    .mobile-toc {
+      display: block;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .hero h1 {
+      font-size: 2rem;
+    }
+
+    .subtitle {
+      font-size: 1rem;
+    }
+
+    .meta {
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .content-section {
+      padding: 1.5rem;
+    }
+
+    .content-section h2 {
+      font-size: 1.5rem;
+    }
+
+    .section-content p {
+      font-size: 1rem;
+    }
+  }
+</style>
+
+<script>
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+  document.querySelectorAll('[data-animate]').forEach(el => {
+    observer.observe(el);
+  });
+
+  const sections = document.querySelectorAll('.content-section');
+  const tocLinks = document.querySelectorAll('.toc-link');
+
+  const sectionObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const id = entry.target.id;
+        tocLinks.forEach(link => {
+          link.classList.remove('active');
+          if (link.getAttribute('href') === `#${id}`) {
+            link.classList.add('active');
+          }
+        });
+      }
+    });
+  }, {
+    threshold: 0.5,
+    rootMargin: '-100px 0px -50% 0px'
+  });
+
+  sections.forEach(section => {
+    sectionObserver.observe(section);
+  });
+
+  const mobileToggle = document.getElementById('mobile-toc-toggle');
+  const mobileDropdown = document.getElementById('mobile-toc-dropdown');
+
+  if (mobileToggle && mobileDropdown) {
+    mobileToggle.addEventListener('click', () => {
+      mobileDropdown.classList.toggle('open');
+    });
+
+    mobileDropdown.querySelectorAll('.toc-link').forEach(link => {
+      link.addEventListener('click', () => {
+        mobileDropdown.classList.remove('open');
+      });
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!mobileToggle.contains(e.target as Node) && !mobileDropdown.contains(e.target as Node)) {
+        mobileDropdown.classList.remove('open');
+      }
+    });
+  }
+
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+      e.preventDefault();
+      // const href = this.getAttribute('href');
+      // if (href) {
+      //   const target = document.querySelector(href);
+      //   if (target) {
+      //     target.scrollIntoView({
+      //       behavior: 'smooth',
+      //       block: 'start'
+      //     });
+      //   }
+      // }
+    });
+  });
+
+  document.querySelector('.download-pdf')?.addEventListener('click', () => {
+    alert('PDF download will be implemented soon.');
+  });
+</script>

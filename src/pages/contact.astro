@@ -1,0 +1,824 @@
+---
+import { translations } from "../i18n/translations";
+import Layout from "../layouts/layout.astro";
+
+// src/pages/es/contact.astro
+
+
+const lang = 'en';
+const t = translations[lang].contact;
+---
+
+<Layout 
+  title={t.pageTitle} 
+  description={t.pageDescription}
+  lang={lang}
+>
+  <!-- Background Orbs -->
+  <div class="orbs">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+  </div>
+
+  <!-- Breadcrumb -->
+  <div class="breadcrumb container">
+    <a href="/es">{t.breadcrumbHome}</a>
+    <span class="separator">›</span>
+    <span>{t.breadcrumbContact}</span>
+  </div>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-content" data-animate>
+        <h1>{t.title}</h1>
+        <p class="subtitle">{t.subtitle}</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact Content -->
+  <section class="contact-content">
+    <div class="container">
+      <div class="contact-grid">
+        
+        <!-- Contact Info Sidebar -->
+        <aside class="contact-info">
+          
+          <!-- Contact Methods -->
+          <div class="info-card glass" data-animate>
+            <h2>{t.infoTitle}</h2>
+            
+            <!-- Email -->
+            <div class="contact-method">
+              <div class="method-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                  <path d="M3 8L10.89 13.26C11.2187 13.4793 11.6049 13.5963 12 13.5963C12.3951 13.5963 12.7813 13.4793 13.11 13.26L21 8M5 19H19C19.5304 19 20.0391 18.7893 20.4142 18.4142C20.7893 18.0391 21 17.5304 21 17V7C21 6.46957 20.7893 5.96086 20.4142 5.58579C20.0391 5.21071 19.5304 5 19 5H5C4.46957 5 3.96086 5.21071 3.58579 5.58579C3.21071 5.96086 3 6.46957 3 7V17C3 17.5304 3.21071 18.0391 3.58579 18.4142C3.96086 18.7893 4.46957 19 5 19Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+              <div class="method-content">
+                <label>{t.emailLabel}</label>
+                <a href={`mailto:${t.emailValue}`} class="contact-value">{t.emailValue}</a>
+              </div>
+            </div>
+            
+            <a href={`mailto:${t.emailValue}`} class="contact-button email-button">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <path d="M3 8L10.89 13.26C11.2187 13.4793 11.6049 13.5963 12 13.5963C12.3951 13.5963 12.7813 13.4793 13.11 13.26L21 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="2"/>
+              </svg>
+              {t.emailButton}
+            </a>
+
+            <!-- WhatsApp -->
+            <div class="contact-method">
+              <div class="method-icon whatsapp">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                  <path d="M17.472 14.382C17.015 14.153 14.798 13.065 14.382 12.924C13.966 12.783 13.661 12.712 13.356 13.169C13.051 13.626 12.186 14.653 11.921 14.958C11.656 15.263 11.391 15.304 10.934 15.075C10.477 14.846 8.99303 14.363 7.24503 12.813C5.87803 11.608 4.96403 10.122 4.69903 9.665C4.43403 9.208 4.67203 8.961 4.90103 8.733C5.10703 8.528 5.35803 8.203 5.58703 7.938C5.81603 7.673 5.88703 7.489 6.02803 7.184C6.16903 6.879 6.09803 6.614 5.98303 6.385C5.86803 6.156 4.95703 3.936 4.58203 2.981C4.21603 2.05 3.84503 2.172 3.56303 2.158C3.29903 2.145 2.99403 2.142 2.68903 2.142C2.38403 2.142 1.92703 2.257 1.51103 2.714C1.09503 3.171 -0.0399704 4.259 -0.0399704 6.479C-0.0399704 8.699 1.55203 10.839 1.78103 11.144C2.01003 11.449 4.96103 15.946 9.47403 17.956C10.515 18.421 11.328 18.697 11.962 18.907C13.009 19.247 13.962 19.2 14.717 19.082C15.553 18.952 17.305 18.004 17.68 16.954C18.055 15.904 18.055 15.015 17.94 14.826C17.825 14.637 17.929 14.611 17.472 14.382Z" fill="currentColor"/>
+                  <path d="M20.52 3.449C18.24 1.16 15.24 -0.1 12.04 -0.1C5.58003 -0.1 0.330029 5.149 0.330029 11.609C0.330029 13.669 0.890029 15.679 1.95003 17.449L0.230029 23.279L6.23003 21.589C7.95003 22.549 9.97003 23.059 12.04 23.059C18.5 23.059 23.75 17.809 23.75 11.349C23.75 8.159 22.5 5.169 20.22 2.889L20.52 3.449Z" stroke="currentColor" stroke-width="1.5"/>
+                </svg>
+              </div>
+              <div class="method-content">
+                <label>{t.whatsappLabel}</label>
+                <span class="contact-value">{t.whatsappValue}</span>
+              </div>
+            </div>
+            
+            <a href="https://wa.me/56987012347" target="_blank" rel="noopener noreferrer" class="contact-button whatsapp-button">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <path d="M17.472 14.382C17.015 14.153 14.798 13.065 14.382 12.924C13.966 12.783 13.661 12.712 13.356 13.169C13.051 13.626 12.186 14.653 11.921 14.958C11.656 15.263 11.391 15.304 10.934 15.075C10.477 14.846 8.99303 14.363 7.24503 12.813C5.87803 11.608 4.96403 10.122 4.69903 9.665C4.43403 9.208 4.67203 8.961 4.90103 8.733C5.10703 8.528 5.35803 8.203 5.58703 7.938C5.81603 7.673 5.88703 7.489 6.02803 7.184C6.16903 6.879 6.09803 6.614 5.98303 6.385C5.86803 6.156 4.95703 3.936 4.58203 2.981C4.21603 2.05 3.84503 2.172 3.56303 2.158C3.29903 2.145 2.99403 2.142 2.68903 2.142C2.38403 2.142 1.92703 2.257 1.51103 2.714C1.09503 3.171 -0.0399704 4.259 -0.0399704 6.479C-0.0399704 8.699 1.55203 10.839 1.78103 11.144C2.01003 11.449 4.96103 15.946 9.47403 17.956C10.515 18.421 11.328 18.697 11.962 18.907C13.009 19.247 13.962 19.2 14.717 19.082C15.553 18.952 17.305 18.004 17.68 16.954C18.055 15.904 18.055 15.015 17.94 14.826C17.825 14.637 17.929 14.611 17.472 14.382Z" fill="currentColor"/>
+              </svg>
+              {t.whatsappButton}
+            </a>
+          </div>
+
+          <!-- Social Media -->
+          <div class="social-card glass" data-animate>
+            <h3>{t.socialTitle}</h3>
+            <p>{t.socialSubtitle}</p>
+            <div class="social-links">
+              <a href="#" class="social-link" aria-label="Instagram">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                  <rect x="2" y="2" width="20" height="20" rx="5" stroke="currentColor" stroke-width="2"/>
+                  <circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="2"/>
+                  <circle cx="17.5" cy="6.5" r="1.5" fill="currentColor"/>
+                </svg>
+                <span>Instagram</span>
+              </a>
+              <a href="#" class="social-link" aria-label="LinkedIn">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                  <path d="M16 8C17.5913 8 19.1174 8.63214 20.2426 9.75736C21.3679 10.8826 22 12.4087 22 14V21H18V14C18 13.4696 17.7893 12.9609 17.4142 12.5858C17.0391 12.2107 16.5304 12 16 12C15.4696 12 14.9609 12.2107 14.5858 12.5858C14.2107 12.9609 14 13.4696 14 14V21H10V14C10 12.4087 10.6321 10.8826 11.7574 9.75736C12.8826 8.63214 14.4087 8 16 8Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <rect x="2" y="9" width="4" height="12" stroke="currentColor" stroke-width="2"/>
+                  <circle cx="4" cy="4" r="2" stroke="currentColor" stroke-width="2"/>
+                </svg>
+                <span>LinkedIn</span>
+              </a>
+              <a href="#" class="social-link" aria-label="Twitter">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                  <path d="M23 3C22.0424 3.67548 20.9821 4.19211 19.86 4.53C19.2577 3.83751 18.4573 3.34669 17.567 3.12393C16.6767 2.90116 15.7395 2.95718 14.8821 3.2845C14.0247 3.61182 13.2884 4.19425 12.773 4.95372C12.2575 5.71319 11.9877 6.61078 12 7.53V8.53C10.2426 8.57557 8.50127 8.18581 6.93101 7.39545C5.36074 6.60508 4.01032 5.43864 3 4C3 4 -1 13 8 17C5.94053 18.398 3.48716 19.0989 1 19C10 24 21 19 21 7.5C20.9991 7.22145 20.9723 6.94359 20.92 6.67C21.9406 5.66349 22.6608 4.39271 23 3Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>Twitter</span>
+              </a>
+            </div>
+          </div>
+
+        </aside>
+
+        <!-- Contact Form -->
+        <div class="contact-form-wrapper">
+          <div class="form-card glass" data-animate>
+            <h2>{t.formTitle}</h2>
+            <p class="form-subtitle">{t.formSubtitle}</p>
+
+            <form id="contact-form" class="contact-form">
+              <!-- Name -->
+              <div class="form-group">
+                <label for="name">{t.nameLabel}</label>
+                <input 
+                  type="text" 
+                  id="name" 
+                  name="name" 
+                  placeholder={t.namePlaceholder}
+                  required
+                />
+                <span class="error-message" id="name-error"></span>
+              </div>
+
+              <!-- Email -->
+              <div class="form-group">
+                <label for="email">{t.emailLabel}</label>
+                <input 
+                  type="email" 
+                  id="email" 
+                  name="email" 
+                  placeholder={t.emailPlaceholder}
+                  required
+                />
+                <span class="error-message" id="email-error"></span>
+              </div>
+
+              <!-- Subject -->
+              <div class="form-group">
+                <label for="subject">{t.subjectLabel}</label>
+                <select id="subject" name="subject" required>
+                  <option value="">{t.subjectPlaceholder}</option>
+                  <option value="general">{t.subjectOptions.general}</option>
+                  <option value="support">{t.subjectOptions.support}</option>
+                  <option value="campaign">{t.subjectOptions.campaign}</option>
+                  <option value="business">{t.subjectOptions.business}</option>
+                  <option value="press">{t.subjectOptions.press}</option>
+                  <option value="other">{t.subjectOptions.other}</option>
+                </select>
+                <span class="error-message" id="subject-error"></span>
+              </div>
+
+              <!-- Message -->
+              <div class="form-group">
+                <label for="message">{t.messageLabel}</label>
+                <textarea 
+                  id="message" 
+                  name="message" 
+                  rows="6"
+                  placeholder={t.messagePlaceholder}
+                  required
+                ></textarea>
+                <span class="error-message" id="message-error"></span>
+              </div>
+
+              <!-- Submit Button -->
+              <button type="submit" class="submit-button">
+                <span class="button-text">{t.submitButton}</span>
+                <span class="button-loading">{t.submitting}</span>
+                <svg class="button-icon" width="20" height="20" viewBox="0 0 24 24" fill="none">
+                  <path d="M22 2L11 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </button>
+            </form>
+
+            <!-- Success Message -->
+            <div id="success-message" class="success-message">
+              <div class="success-icon">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                  <path d="M8 12L11 15L16 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+              <h3>{t.successTitle}</h3>
+              <p>{t.successMessage}</p>
+              <button id="reset-form" class="reset-button">{t.successButton}</button>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+</Layout>
+
+<style>
+  /* Estilos idénticos a la versión EN - solo copio los estilos completos */
+  .orbs {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.4;
+    animation: float 8s ease-in-out infinite;
+  }
+
+  .orb-1 {
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, #007AFF 0%, transparent 70%);
+    top: -100px;
+    right: -100px;
+  }
+
+  .orb-2 {
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, #00D4FF 0%, transparent 70%);
+    bottom: -150px;
+    left: -150px;
+    animation-delay: 2s;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-20px); }
+  }
+
+  .breadcrumb {
+    padding: 2rem 0 1rem;
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+  }
+
+  .breadcrumb a {
+    color: rgba(255, 255, 255, 0.7);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .breadcrumb a:hover {
+    color: var(--blue-primary);
+  }
+
+  .breadcrumb .separator {
+    color: rgba(255, 255, 255, 0.4);
+  }
+
+  .breadcrumb span:last-child {
+    color: white;
+  }
+
+  .hero {
+    padding: 2rem 0 4rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  .hero-content {
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .hero h1 {
+    font-size: clamp(2.5rem, 5vw, 3.5rem);
+    font-weight: 800;
+    color: white;
+    margin-bottom: 1rem;
+    line-height: 1.2;
+  }
+
+  .subtitle {
+    font-size: 1.25rem;
+    color: rgba(255, 255, 255, 0.8);
+    line-height: 1.6;
+  }
+
+  .contact-content {
+    padding: 2rem 0 6rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  .contact-grid {
+    display: grid;
+    grid-template-columns: 380px 1fr;
+    gap: 3rem;
+    align-items: start;
+  }
+
+  .contact-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    position: sticky;
+    top: 100px;
+  }
+
+  .info-card, .social-card, .form-card {
+    padding: 2.5rem;
+    border-radius: var(--radius-lg);
+  }
+
+  .info-card h2, .form-card h2 {
+    color: white;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 2rem;
+  }
+
+  .contact-method {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .contact-method:last-of-type {
+    border-bottom: none;
+  }
+
+  .method-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-md);
+    background: rgba(0, 122, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--blue-primary);
+    flex-shrink: 0;
+  }
+
+  .method-icon.whatsapp {
+    background: rgba(37, 211, 102, 0.1);
+    color: #25D366;
+  }
+
+  .method-content {
+    flex: 1;
+  }
+
+  .method-content label {
+    display: block;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 0.25rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .contact-value {
+    color: white;
+    font-size: 1.05rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  a.contact-value:hover {
+    color: var(--blue-primary);
+  }
+
+  .contact-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    width: 100%;
+    padding: 1rem;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s;
+    margin-bottom: 1rem;
+  }
+
+  .email-button {
+    background: rgba(0, 122, 255, 0.1);
+    border: 1px solid rgba(0, 122, 255, 0.3);
+    color: var(--blue-primary);
+  }
+
+  .email-button:hover {
+    background: rgba(0, 122, 255, 0.2);
+    border-color: var(--blue-primary);
+    transform: translateY(-2px);
+  }
+
+  .whatsapp-button {
+    background: rgba(37, 211, 102, 0.1);
+    border: 1px solid rgba(37, 211, 102, 0.3);
+    color: #25D366;
+  }
+
+  .whatsapp-button:hover {
+    background: rgba(37, 211, 102, 0.2);
+    border-color: #25D366;
+    transform: translateY(-2px);
+  }
+
+  .social-card h3 {
+    color: white;
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+
+  .social-card p {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.95rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .social-links {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .social-link {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius-sm);
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+
+  .social-link:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: var(--blue-primary);
+    color: var(--blue-primary);
+    transform: translateX(4px);
+  }
+
+  .social-link span {
+    font-weight: 500;
+  }
+
+  .form-subtitle {
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 2rem;
+  }
+
+  .contact-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .form-group label {
+    color: white;
+    font-weight: 500;
+    font-size: 0.95rem;
+  }
+
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    padding: 0.875rem 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-md);
+    color: white;
+    font-size: 1rem;
+    font-family: inherit;
+    transition: all 0.2s;
+  }
+
+  .form-group input:focus,
+  .form-group select:focus,
+  .form-group textarea:focus {
+    outline: none;
+    border-color: var(--blue-primary);
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  .form-group textarea {
+    resize: vertical;
+    min-height: 120px;
+  }
+
+  .error-message {
+    color: #FF3B30;
+    font-size: 0.85rem;
+    display: none;
+  }
+
+  .form-group.error input,
+  .form-group.error select,
+  .form-group.error textarea {
+    border-color: #FF3B30;
+  }
+
+  .form-group.error .error-message {
+    display: block;
+  }
+
+  .submit-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 1.125rem 2rem;
+    background: var(--blue-primary);
+    border: none;
+    border-radius: var(--radius-md);
+    color: white;
+    font-weight: 600;
+    font-size: 1.05rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 0.5rem;
+  }
+
+  .submit-button:hover {
+    background: var(--blue-light);
+    transform: translateY(-2px);
+  }
+
+  .submit-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .button-loading {
+    display: none;
+  }
+
+  .submit-button.loading .button-text {
+    display: none;
+  }
+
+  .submit-button.loading .button-loading {
+    display: block;
+  }
+
+  .submit-button.loading .button-icon {
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    100% { transform: rotate(360deg); }
+  }
+
+  .success-message {
+    display: none;
+    text-align: center;
+    padding: 3rem 2rem;
+  }
+
+  .success-message.show {
+    display: block;
+  }
+
+  .success-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 1.5rem;
+    border-radius: 50%;
+    background: rgba(52, 199, 89, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #34C759;
+  }
+
+  .success-message h3 {
+    color: white;
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+  }
+
+  .success-message p {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 1.05rem;
+    margin-bottom: 2rem;
+  }
+
+  .reset-button {
+    padding: 0.875rem 2rem;
+    background: rgba(0, 122, 255, 0.1);
+    border: 1px solid rgba(0, 122, 255, 0.3);
+    border-radius: var(--radius-md);
+    color: var(--blue-primary);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .reset-button:hover {
+    background: rgba(0, 122, 255, 0.2);
+    border-color: var(--blue-primary);
+  }
+
+  .contact-form.hide {
+    display: none;
+  }
+
+  [data-animate] {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.6s ease;
+  }
+
+  [data-animate].visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  @media (max-width: 1024px) {
+    .contact-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .contact-info {
+      position: static;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .hero h1 {
+      font-size: 2rem;
+    }
+
+    .subtitle {
+      font-size: 1rem;
+    }
+
+    .info-card, .social-card, .form-card {
+      padding: 1.5rem;
+    }
+
+    .contact-method {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .method-icon {
+      width: 40px;
+      height: 40px;
+    }
+  }
+</style>
+
+<script>
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('[data-animate]').forEach(el => {
+    observer.observe(el);
+  });
+
+  const form = document.getElementById('contact-form') as HTMLFormElement;
+  const successMessage = document.getElementById('success-message');
+  const resetButton = document.getElementById('reset-form');
+
+  const messages = {
+    nameRequired: 'Por favor ingresa tu nombre',
+    emailRequired: 'Por favor ingresa tu email',
+    emailInvalid: 'Por favor ingresa un email válido',
+    subjectRequired: 'Por favor selecciona un asunto',
+    messageRequired: 'Por favor ingresa tu mensaje',
+    messageMinLength: 'El mensaje debe tener al menos 10 caracteres'
+  };
+
+  function showError(fieldId: string, message: string) {
+    const field = document.getElementById(fieldId);
+    const errorEl = document.getElementById(`${fieldId}-error`);
+    if (field && errorEl) {
+      field.closest('.form-group')?.classList.add('error');
+      errorEl.textContent = message;
+    }
+  }
+
+  function clearError(fieldId: string) {
+    const field = document.getElementById(fieldId);
+    const errorEl = document.getElementById(`${fieldId}-error`);
+    if (field && errorEl) {
+      field.closest('.form-group')?.classList.remove('error');
+      errorEl.textContent = '';
+    }
+  }
+
+  function validateEmail(email: string): boolean {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  }
+
+  function validateForm(): boolean {
+    let isValid = true;
+
+    ['name', 'email', 'subject', 'message'].forEach(clearError);
+
+    const name = (document.getElementById('name') as HTMLInputElement).value.trim();
+    if (!name) {
+      showError('name', messages.nameRequired);
+      isValid = false;
+    }
+
+    const email = (document.getElementById('email') as HTMLInputElement).value.trim();
+    if (!email) {
+      showError('email', messages.emailRequired);
+      isValid = false;
+    } else if (!validateEmail(email)) {
+      showError('email', messages.emailInvalid);
+      isValid = false;
+    }
+
+    const subject = (document.getElementById('subject') as HTMLSelectElement).value;
+    if (!subject) {
+      showError('subject', messages.subjectRequired);
+      isValid = false;
+    }
+
+    const message = (document.getElementById('message') as HTMLTextAreaElement).value.trim();
+    if (!message) {
+      showError('message', messages.messageRequired);
+      isValid = false;
+    } else if (message.length < 10) {
+      showError('message', messages.messageMinLength);
+      isValid = false;
+    }
+
+    return isValid;
+  }
+
+  if (form) {
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      if (!validateForm()) return;
+
+      const formData = new FormData(form);
+      const name = formData.get('name');
+      const email = formData.get('email');
+      const subject = formData.get('subject');
+      const message = formData.get('message');
+
+      const mailtoLink = `mailto:dh.lark.25@gmail.com?subject=${encodeURIComponent('L-ark Contacto: ' + subject)}&body=${encodeURIComponent(`Nombre: ${name}\nEmail: ${email}\n\nMensaje:\n${message}`)}`;
+
+      const submitBtn = form.querySelector('.submit-button');
+      submitBtn?.classList.add('loading');
+
+      setTimeout(() => {
+        window.location.href = mailtoLink;
+        form.classList.add('hide');
+        successMessage?.classList.add('show');
+        submitBtn?.classList.remove('loading');
+      }, 1000);
+    });
+  }
+
+  if (resetButton) {
+    resetButton.addEventListener('click', () => {
+      form.reset();
+      form.classList.remove('hide');
+      successMessage?.classList.remove('show');
+      ['name', 'email', 'subject', 'message'].forEach(clearError);
+    });
+  }
+
+  ['name', 'email', 'subject', 'message'].forEach(fieldId => {
+    const field = document.getElementById(fieldId);
+    field?.addEventListener('blur', () => {
+      if ((field as HTMLInputElement).value.trim()) {
+        clearError(fieldId);
+      }
+    });
+  });
+</script>
