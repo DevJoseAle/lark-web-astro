@@ -1,12 +1,11 @@
 ---
-// src/pages/es/donate.astro
-import { translations } from '../../i18n/translations';
-import Layout from '../../layouts/layout.astro';
+import { translations } from "../../i18n/translations";
+import Layout from "../../layouts/layout.astro";
 
 const t = translations.es;
 ---
 
-<Layout title="Donar - Buscar Campañas" lang="es">
+<Layout title="Donate - Search Campaigns" lang="en">
   <section class="donate-hero">
     <div class="hero-content">
       <h1 data-animate>{t.donate.title}</h1>
@@ -25,12 +24,12 @@ const t = translations.es;
           <input 
             type="text" 
             id="searchInput" 
-            placeholder={t.donate.searchPlaceholder}
+            placeholder="Enter campaign ID (e.g., LARK-1234)"
             class="search-input"
           />
         </div>
         <button id="searchButton" class="search-button">
-          <span>{t.donate.searchButton}</span>
+          <span>Search</span>
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
             <path d="M4 10H16M16 10L10 4M16 10L10 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
@@ -43,7 +42,7 @@ const t = translations.es;
             <circle cx="35" cy="35" r="20" stroke="currentColor" stroke-width="3" opacity="0.3"/>
             <path d="M52 52L65 65" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
           </svg>
-          <p class="help-text">{t.donate.helpText}</p>
+          <p class="help-text">Enter a campaign ID to search</p>
         </div>
       </div>
     </div>
@@ -51,147 +50,143 @@ const t = translations.es;
 </Layout>
 
 <script>
-  import { supabase } from '../../lib/supabase';
-  import { formatCurrency, calculateProgress, getCountryFlag } from '../../lib/utils';
+import { supabase } from "../../lib/supabase";
+import { getCountryFlag, formatCurrency } from "../../lib/utils";
 
   const searchInput = document.getElementById('searchInput') as HTMLInputElement;
   const searchButton = document.getElementById('searchButton') as HTMLButtonElement;
   const resultsContainer = document.getElementById('results') as HTMLDivElement;
 
-  const currentLang = document.documentElement.lang as 'en' | 'es';
-  const isSpanish = currentLang === 'es';
+  async function searchCampaign(shortCode: string) {
+    const trimmedCode = shortCode.trim().toUpperCase();
 
-  const texts = {
-    minChars: isSpanish ? 'Ingresa al menos 2 caracteres para buscar' : 'Enter at least 2 characters to search',
-    searching: isSpanish ? 'Buscando campañas...' : 'Searching campaigns...',
-    noResults: isSpanish ? 'No se encontraron campañas con' : 'No campaigns found with',
-    tryAgain: isSpanish ? 'Intenta con otro término de búsqueda' : 'Try another search term',
-    resultsFound: isSpanish ? 'campaña(s) encontrada(s)' : 'campaign(s) found',
-    errorSearching: isSpanish ? 'Error al buscar campañas. Intenta de nuevo.' : 'Error searching campaigns. Please try again.',
-  };
-
-  async function searchCampaigns(query: string) {
-    if (!query || query.trim().length < 2) {
+    if (!trimmedCode || trimmedCode.length < 3) {
       resultsContainer.innerHTML = `
         <div class="empty-state">
           <svg width="80" height="80" viewBox="0 0 80 80" fill="none" class="empty-icon">
             <circle cx="35" cy="35" r="20" stroke="currentColor" stroke-width="3" opacity="0.3"/>
             <path d="M52 52L65 65" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
           </svg>
-          <p class="help-text">${texts.minChars}</p>
+          <p class="help-text">Enter at least 3 characters</p>
         </div>
       `;
       return;
     }
 
-    resultsContainer.innerHTML = `
-      <div class="loading-state">
-        <div class="spinner"></div>
-        <p>${texts.searching}</p>
-      </div>
-    `;
+resultsContainer.innerHTML = `
+  <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; 
+              padding: 4rem 2rem; text-align: center; color: white; gap: 1.5rem; min-height: 400px;">
+    <div style="width: 50px; height: 50px; border: 3px solid rgba(255, 255, 255, 0.1); 
+                border-top-color: #007AFF; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+    <p style="font-size: 1.125rem; color: rgba(255, 255, 255, 0.8); margin: 0;">Searching campaign...</p>
+  </div>
+`;
 
     try {
-      const { data: campaigns, error } = await supabase
+      const { data: campaign, error } = await supabase
         .from('campaigns')
         .select(`
-          id,
+          short_code,
           title,
-          description,
           country,
           goal_amount,
-          current_amount,
           currency,
-          images:campaign_images(image_url, is_primary)
+          campaign_images(image_url, is_primary)
         `)
         .eq('status', 'active')
-        .ilike('title', `%${query}%`)
-        .limit(10);
+        .ilike('short_code', trimmedCode)
+        .maybeSingle();
 
       if (error) throw error;
 
-      if (!campaigns || campaigns.length === 0) {
+      if (!campaign) {
         resultsContainer.innerHTML = `
           <div class="no-results">
             <svg width="80" height="80" viewBox="0 0 80 80" fill="none" class="empty-icon">
               <circle cx="40" cy="40" r="30" stroke="currentColor" stroke-width="3" opacity="0.3"/>
               <path d="M30 35H50M35 50H45" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
             </svg>
-            <p>${texts.noResults} "<strong>${query}</strong>"</p>
-            <p class="help-text">${texts.tryAgain}</p>
+            <p class="no-results-text">No campaign found with ID: <strong>${trimmedCode}</strong></p>
+            <p class="help-text">Please verify the campaign ID and try again</p>
           </div>
         `;
         return;
       }
 
-      const html = campaigns.map((campaign: any) => {
-        const progress = calculateProgress(campaign.current_amount, campaign.goal_amount);
-        const primaryImage = campaign.images?.find((img: any) => img.is_primary)?.image_url 
-          || campaign.images?.[0]?.image_url 
-          || 'https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=800&q=80';
+      const primaryImage = campaign.campaign_images?.find((img: any) => img.is_primary)?.image_url 
+        || campaign.campaign_images?.[0]?.image_url 
+        || 'https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=800&q=80';
+      
+      const countryFlag = getCountryFlag(campaign.country);
 
-        return `
-          <a href="/campaign/${campaign.id}" class="campaign-card glass">
-            <div class="card-image-wrapper">
-              <div class="card-image" style="background-image: url('${primaryImage}')">
-                <div class="image-overlay"></div>
+      // ✅ INLINE STYLES - Esta es la clave
+      resultsContainer.innerHTML = `
+        <div style="max-width: 800px; margin: 0 auto; animation: fadeInUp 0.4s ease;">
+          <p style="text-align: center; color: #34C759; font-size: 1.125rem; font-weight: 600; margin-bottom: 2rem;">
+            ✓ Campaign found!
+          </p>
+          
+          <a href="/campaign/${campaign.short_code}" 
+             style="display: flex; align-items: center; gap: 1.5rem; padding: 1.5rem; 
+                    background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px); 
+                    border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; 
+                    transition: all 0.2s ease; text-decoration: none; color: white; cursor: pointer;"
+             onmouseover="this.style.background='rgba(255, 255, 255, 0.08)'; this.style.borderColor='rgba(0, 122, 255, 0.3)'; this.style.transform='translateX(8px)'; this.style.boxShadow='0 8px 24px rgba(0, 122, 255, 0.15)';"
+             onmouseout="this.style.background='rgba(255, 255, 255, 0.05)'; this.style.borderColor='rgba(255, 255, 255, 0.1)'; this.style.transform='translateX(0)'; this.style.boxShadow='none';">
+            
+            <img src="${primaryImage}" alt="${campaign.title}" 
+                 style="width: 80px; height: 80px; border-radius: 12px; object-fit: cover; 
+                        flex-shrink: 0; border: 2px solid rgba(255, 255, 255, 0.1);">
+            
+            <div style="flex: 1; display: flex; flex-direction: column; gap: 0.5rem; min-width: 0;">
+              <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <span style="font-size: 0.875rem; font-weight: 600; color: #007AFF; 
+                             font-family: 'Courier New', monospace; text-transform: uppercase; letter-spacing: 0.05em;">
+                  ${countryFlag} ${campaign.short_code}
+                </span>
               </div>
-              <span class="country-badge">${getCountryFlag(campaign.country)} ${campaign.country}</span>
+              
+              <h3 style="font-size: 1.25rem; font-weight: 700; line-height: 1.3; margin: 0; 
+                         color: white; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                ${campaign.title}
+              </h3>
+              
+              <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.9375rem;">
+                <span style="color: rgba(255, 255, 255, 0.6); font-weight: 500;">Goal:</span>
+                <span style="color: #34C759; font-weight: 700;">${formatCurrency(campaign.goal_amount, campaign.currency)}</span>
+              </div>
             </div>
             
-            <div class="card-content">
-              <h3 class="card-title">${campaign.title}</h3>
-              <p class="card-description">${campaign.description?.substring(0, 120) || ''}...</p>
-              
-              <div class="card-progress">
-                <div class="progress-bar">
-                  <div class="progress-fill" style="width: ${progress}%"></div>
-                </div>
-                <div class="progress-label">
-                  <span>${progress}% ${isSpanish ? 'recaudado' : 'raised'}</span>
-                </div>
-              </div>
-              
-              <div class="card-stats">
-                <div class="stat">
-                  <div class="stat-value">${formatCurrency(campaign.current_amount, campaign.currency)}</div>
-                  <div class="stat-label">${isSpanish ? 'recaudado' : 'raised'}</div>
-                </div>
-                <div class="stat">
-                  <div class="stat-value">${formatCurrency(campaign.goal_amount, campaign.currency)}</div>
-                  <div class="stat-label">${isSpanish ? 'meta' : 'goal'}</div>
-                </div>
-              </div>
+            <div style="flex-shrink: 0; color: rgba(255, 255, 255, 0.4); transition: all 0.2s ease;">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <path d="M9 5L16 12L9 19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
             </div>
           </a>
-        `;
-      }).join('');
-
-      resultsContainer.innerHTML = `
-        <p class="results-count">${campaigns.length} ${texts.resultsFound}</p>
-        <div class="campaigns-grid">${html}</div>
+        </div>
       `;
+
     } catch (error) {
-      console.error('Error searching:', error);
+      console.error('Search error:', error);
       resultsContainer.innerHTML = `
         <div class="error-state">
           <svg width="80" height="80" viewBox="0 0 80 80" fill="none" class="empty-icon">
             <circle cx="40" cy="40" r="30" stroke="currentColor" stroke-width="3" opacity="0.3"/>
             <path d="M40 25V45M40 55V57" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
           </svg>
-          <p class="error-text">${texts.errorSearching}</p>
+          <p class="error-text">Error searching campaign. Please try again.</p>
         </div>
       `;
     }
   }
 
   searchButton?.addEventListener('click', () => {
-    searchCampaigns(searchInput.value);
+    searchCampaign(searchInput.value);
   });
 
   searchInput?.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
-      searchCampaigns(searchInput.value);
+      searchCampaign(searchInput.value);
     }
   });
 
@@ -210,7 +205,7 @@ const t = translations.es;
 </script>
 
 <style>
-  /* Copiar TODO el CSS de donate.astro aquí */
+  /* Estos estilos SÍ funcionan porque son para elementos estáticos */
   .donate-hero {
     padding: 6rem 2rem 4rem;
     text-align: center;
@@ -255,19 +250,13 @@ const t = translations.es;
     padding: 2rem 0 6rem;
   }
 
-  .container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 2rem;
-  }
-
   .search-box {
     display: flex;
     gap: 1rem;
-    max-width: 900px;
+    max-width: 700px;
     margin: 0 auto 4rem;
     padding: 1rem;
-    border-radius: var(--radius-xl);
+    border-radius: var(--radius-lg);
     align-items: center;
   }
 
@@ -284,7 +273,9 @@ const t = translations.es;
     color: rgba(255, 255, 255, 0.5);
     pointer-events: none;
   }
-
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
   .search-input {
     width: 100%;
     padding: 1.25rem 1.5rem 1.25rem 4rem;
@@ -295,10 +286,12 @@ const t = translations.es;
     font-size: 1.125rem;
     outline: none;
     transition: all var(--transition-base);
+    text-transform: uppercase;
   }
 
   .search-input::placeholder {
     color: rgba(255, 255, 255, 0.5);
+    text-transform: none;
   }
 
   .search-input:focus {
@@ -372,151 +365,29 @@ const t = translations.es;
     to { transform: rotate(360deg); }
   }
 
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .no-results-text {
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+  }
+
   .no-results strong {
     color: var(--blue-primary);
   }
 
   .error-text {
-    color: var(--error);
+    color: #EF4444;
     font-size: 1.125rem;
-  }
-
-  .results-count {
-    color: rgba(255, 255, 255, 0.8);
-    margin-bottom: 2rem;
-    font-size: 1.125rem;
-    font-weight: 500;
-  }
-
-  .campaigns-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-    gap: 2rem;
-  }
-
-  .campaign-card {
-    border-radius: var(--radius-xl);
-    overflow: hidden;
-    transition: all var(--transition-slow);
-    text-decoration: none;
-    color: inherit;
-    display: block;
-  }
-
-  .campaign-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 16px 48px rgba(0, 122, 255, 0.2);
-  }
-
-  .card-image-wrapper {
-    position: relative;
-    overflow: hidden;
-  }
-
-  .card-image {
-    width: 100%;
-    height: 240px;
-    background-size: cover;
-    background-position: center;
-    position: relative;
-    transition: transform var(--transition-slow);
-  }
-
-  .campaign-card:hover .card-image {
-    transform: scale(1.05);
-  }
-
-  .image-overlay {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.3) 100%);
-  }
-
-  .country-badge {
-    position: absolute;
-    top: 1rem;
-    right: 1rem;
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(10px);
-    padding: 0.5rem 1rem;
-    border-radius: var(--radius-full);
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: var(--navy-primary);
-    z-index: 1;
-  }
-
-  .card-content {
-    padding: 2rem;
-    color: white;
-  }
-
-  .card-title {
-    font-size: 1.5rem;
-    font-weight: 600;
-    margin-bottom: 0.75rem;
-    line-height: 1.3;
-  }
-
-  .card-description {
-    color: rgba(255, 255, 255, 0.7);
-    font-size: 1rem;
-    line-height: 1.6;
-    margin-bottom: 1.5rem;
-  }
-
-  .card-progress {
-    margin-bottom: 1.5rem;
-  }
-
-  .progress-bar {
-    width: 100%;
-    height: 8px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 4px;
-    overflow: hidden;
-    margin-bottom: 0.5rem;
-  }
-
-  .progress-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--success) 0%, #22C55E 100%);
-    transition: width var(--transition-slow);
-  }
-
-  .progress-label {
-    display: flex;
-    justify-content: flex-end;
-    font-size: 0.875rem;
-    color: rgba(255, 255, 255, 0.6);
-    font-weight: 500;
-  }
-
-  .card-stats {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.5rem;
-  }
-
-  .stat {
-    text-align: center;
-    padding: 1rem;
-    background: rgba(255, 255, 255, 0.03);
-    border-radius: var(--radius-md);
-  }
-
-  .stat-value {
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: white;
-    margin-bottom: 0.25rem;
-  }
-
-  .stat-label {
-    font-size: 0.875rem;
-    color: rgba(255, 255, 255, 0.6);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
   }
 
   [data-animate] {
@@ -528,21 +399,5 @@ const t = translations.es;
   [data-animate].animate-in {
     opacity: 1;
     transform: translateY(0);
-  }
-
-  @media (max-width: 768px) {
-    .search-box {
-      flex-direction: column;
-      padding: 0.75rem;
-    }
-
-    .search-button {
-      width: 100%;
-      justify-content: center;
-    }
-
-    .campaigns-grid {
-      grid-template-columns: 1fr;
-    }
   }
 </style>
