@@ -6,48 +6,56 @@ import Layout from '../../layouts/layout.astro';
 import { supabase } from '../../lib/supabase';
 
 const { id } = Astro.params;
-// 🌍 Auto-detect browser language
-const acceptLang = Astro.request.headers.get('accept-language');
-const browserLang = acceptLang?.startsWith('es') ? 'es' : 'en';
-
-// Si el navegador está en español pero la URL es /campaign/[id], redirigir
-if (browserLang === 'es' && !Astro.url.pathname.startsWith('/es/')) {
-  return Astro.redirect(`/es/campaign/${id}`);
-}
-
 const lang = 'en';
 const t = translations[lang].campaignDetail;
 
-// Fetch campaign from Supabase
+console.log('==========================================');
+console.log('🔍 [EN] Campaign ID:', id);
+console.log('🔍 [EN] ID type:', typeof id);
+console.log('🔍 [EN] Calling Edge Function: get-campaign');
+
+// Fetch campaign using Supabase client
 let campaign: any = null;
 let error: any = null;
 
 try {
-  const response = await fetch(
-    `${import.meta.env.PUBLIC_SUPABASE_URL}/functions/v1/get-full-campaign?id=${id}`,
-    {
-      headers: {
-        'Authorization': `Bearer ${import.meta.env.PUBLIC_SUPABASE_ANON_KEY}`,
-      },
-    }
-  )
-
-  const result = await response.json()
+  console.log('📡 [EN] Invoking Edge Function...');
   
-  if (result.error) {
-    error = result.error
+  const { data, error: fetchError } = await supabase.functions.invoke('get-full-campaign', {
+    body: { id: id }
+  });
+
+  console.log('📦 [EN] Response data:', data);
+  console.log('❌ [EN] Response error:', fetchError);
+
+  if (fetchError) {
+    console.error('🚨 [EN] Edge Function error:', fetchError);
+    error = fetchError;
+  } else if (data?.error) {
+    console.error('🚨 [EN] Data contains error:', data.error);
+    error = data.error;
+  } else if (data?.data) {
+    console.log('✅ [EN] Campaign found:', data.data.title);
+    campaign = data.data;
   } else {
-    campaign = result.data
+    console.log('⚠️ [EN] No data returned');
+    error = 'No campaign data';
   }
 } catch (e) {
-  console.error('Error:', e)
-  error = e
+  console.error('💥 [EN] Exception:', e);
+  error = e;
 }
+
+console.log('🎯 [EN] Final campaign:', campaign ? campaign.title : 'NULL');
+console.log('🚨 [EN] Final error:', error);
 
 // If campaign not found, redirect to 404
 if (!campaign || error) {
+  console.log('⚠️ [EN] Redirecting to /404');
   return Astro.redirect('/404');
 }
+
+console.log('✅ [EN] Campaign loaded successfully');
 
 // Calculate progress
 const progress = campaign.goal_amount > 0 
@@ -62,6 +70,8 @@ const hardCapProgress = (campaign.hard_cap && campaign.goal_amount > 0)
   ? (campaign.hard_cap / campaign.goal_amount) * 100 
   : 0;
 
+console.log('📊 [EN] Progress:', progress.toFixed(2) + '%');
+
 // Helper function for status text
 const getStatusText = (status: string) => {
   const key = `status${status.charAt(0).toUpperCase() + status.slice(1)}` as 
@@ -69,10 +79,14 @@ const getStatusText = (status: string) => {
   return t[key] || status;
 };
 
-// Get primary image or fallback
-const primaryImage = campaign.images?.find((img: any) => img.is_primary) || campaign.images?.[0];
+// Images
+const primaryImage = campaign.primaryImage;
 const campaignImages = campaign.images?.filter((img: any) => img.image_type !== 'diagnosis') || [];
 const diagnosisImages = campaign.images?.filter((img: any) => img.image_type === 'diagnosis') || [];
+
+console.log('🖼️ [EN] Primary image:', primaryImage?.image_url || 'NONE');
+console.log('🖼️ [EN] Campaign images:', campaignImages.length);
+console.log('==========================================');
 ---
 
 <Layout 
@@ -121,7 +135,7 @@ const diagnosisImages = campaign.images?.filter((img: any) => img.image_type ===
           <!-- Gallery Thumbnails -->
           {campaign.images.length > 1 && (
             <div class="gallery-thumbnails" data-animate>
-              {campaign.images.map((image, index) => (
+              {campaign.images.map((image: any, index: string) => (
                 <button class="thumbnail glass" data-image={index}>
                   <img src={image.image_url} alt={`Image ${index + 1}`} />
                 </button>
@@ -1006,7 +1020,158 @@ const diagnosisImages = campaign.images?.filter((img: any) => img.image_type ===
   }
 </style>
 
+
 <script>
+  // Intersection Observer for animations
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('[data-animate]').forEach(el => {
+    observer.observe(el);
+  });
+
+  // Amount button selection
+  const amountBtns = document.querySelectorAll('.amount-btn');
+  const customInput = document.getElementById('custom-amount') as HTMLInputElement;
+  let selectedAmount = 0;
+
+  amountBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      amountBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      selectedAmount = parseInt(btn.getAttribute('data-amount') || '0');
+      if (customInput) customInput.value = '';
+    });
+  });
+
+  customInput?.addEventListener('input', () => {
+    amountBtns.forEach(b => b.classList.remove('active'));
+    selectedAmount = parseInt(customInput.value) || 0;
+  });
+
+  // Donate button with Stripe Checkout
+  document.getElementById('donate-btn')?.addEventListener('click', async () => {
+    let amount = selectedAmount;
+    
+    if (!amount && customInput?.value) {
+      amount = parseInt(customInput.value) || 0;
+    }
+
+    if (amount < 5) {
+      alert('Minimum donation is $5');
+      return;
+    }
+
+    try {
+      const campaignId = window.location.pathname.split('/').pop();
+      
+      const btn = document.getElementById('donate-btn') as HTMLButtonElement;
+      const originalText = btn.textContent;
+      
+      if (btn) {
+        btn.textContent = 'Processing...';
+        btn.disabled = true;
+        btn.style.opacity = '0.6';
+      }
+
+      // Import supabase client
+      const { createClient } = await import('@supabase/supabase-js');
+      const supabase = createClient(
+        import.meta.env.PUBLIC_SUPABASE_URL,
+        import.meta.env.PUBLIC_SUPABASE_ANON_KEY
+      );
+
+      const { data, error } = await supabase.functions.invoke('stripe-checkout-session', {
+        body: {
+          campaignId,
+          amount: amount * 100,
+        }
+      });
+
+      if (error || data?.error) {
+        throw new Error(error?.message || data?.error);
+      }
+
+      window.location.href = data.url;
+    } catch (error) {
+      console.error('Checkout error:', error);
+      alert('Error processing donation. Please try again.');
+      
+      const btn = document.getElementById('donate-btn') as HTMLButtonElement;
+      if (btn) {
+        btn.textContent = 'Donate Now';
+        btn.disabled = false;
+        btn.style.opacity = '1';
+      }
+    }
+  });
+
+  // Share buttons
+  const shareButtons = document.querySelectorAll('[data-share]');
+  const copyFeedback = document.getElementById('copy-feedback');
+  
+  shareButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const type = btn.getAttribute('data-share');
+      const url = window.location.href;
+      const title = document.querySelector('h1')?.textContent || 'Support this campaign';
+
+      switch (type) {
+        case 'whatsapp':
+          window.open(`https://wa.me/?text=${encodeURIComponent(title + ' - ' + url)}`, '_blank');
+          break;
+        case 'twitter':
+          window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`, '_blank');
+          break;
+        case 'facebook':
+          window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, '_blank');
+          break;
+        case 'copy':
+          navigator.clipboard.writeText(url).then(() => {
+            copyFeedback?.classList.add('show');
+            setTimeout(() => copyFeedback?.classList.remove('show'), 2000);
+          });
+          break;
+      }
+    });
+  });
+
+  // Gallery thumbnails
+  const thumbnails = document.querySelectorAll('.thumbnail');
+  const heroImage = document.querySelector('.hero-image img') as HTMLImageElement;
+
+  thumbnails.forEach(thumb => {
+    thumb.addEventListener('click', () => {
+      const img = thumb.querySelector('img') as HTMLImageElement;
+      if (heroImage && img) {
+        heroImage.src = img.src;
+      }
+    });
+  });
+
+  // Handle success/cancel from Stripe
+  const urlParams = new URLSearchParams(window.location.search);
+
+  if (urlParams.get('success')) {
+    alert('Thank you for your donation! ❤️');
+    window.history.replaceState({}, '', window.location.pathname);
+  }
+
+  if (urlParams.get('canceled')) {
+    alert('Donation canceled. Feel free to try again.');
+    window.history.replaceState({}, '', window.location.pathname);
+  }
+</script>
+
+
+
+
+<!-- <script>
   // Intersection Observer for animations
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
@@ -1168,4 +1333,4 @@ const diagnosisImages = campaign.images?.filter((img: any) => img.image_type ===
     alert('Donation canceled. Feel free to try again.');
     window.history.replaceState({}, '', window.location.pathname);
   }
-</script>
+</script> -->

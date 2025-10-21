@@ -1,52 +1,61 @@
 ---
-import { translations } from "../../../i18n/translations";
-import Layout from "../../../layouts/layout.astro";
-
 export const prerender = false;
 
+import { translations } from '../../../i18n/translations';
+import Layout from '../../../layouts/layout.astro';
+import { supabase } from '../../../lib/supabase';
+
 const { id } = Astro.params;
-// 🌍 Auto-detect browser language
-const acceptLang = Astro.request.headers.get('accept-language');
-const browserLang = acceptLang?.startsWith('es') ? 'es' : 'en';
-
-// Si el navegador está en español pero la URL es /campaign/[id], redirigir
-if (browserLang === 'es' && !Astro.url.pathname.startsWith('/es/')) {
-  return Astro.redirect(`/es/campaign/${id}`);
-}
-
-const lang = 'en';
+const lang = 'es';
 const t = translations[lang].campaignDetail;
 
-// Fetch campaign from Supabase
+console.log('==========================================');
+console.log('🔍 [ES] Campaign ID:', id);
+console.log('🔍 [ES] ID type:', typeof id);
+console.log('🔍 [ES] Calling Edge Function: get-campaign');
+
+// Fetch campaign using Supabase client
 let campaign: any = null;
 let error: any = null;
 
 try {
-  const response = await fetch(
-    `${import.meta.env.PUBLIC_SUPABASE_URL}/functions/v1/get-full-campaign?id=${id}`,
-    {
-      headers: {
-        'Authorization': `Bearer ${import.meta.env.PUBLIC_SUPABASE_ANON_KEY}`,
-      },
-    }
-  )
-
-  const result = await response.json()
+  console.log('📡 [ES] Invoking Edge Function...');
   
-  if (result.error) {
-    error = result.error
+  const { data, error: fetchError } = await supabase.functions.invoke('get-full-campaign', {
+    body: { id: id }
+  });
+
+  console.log('📦 [ES] Response data:', data);
+  console.log('❌ [ES] Response error:', fetchError);
+
+  if (fetchError) {
+    console.error('🚨 [ES] Edge Function error:', fetchError);
+    error = fetchError;
+  } else if (data?.error) {
+    console.error('🚨 [ES] Data contains error:', data.error);
+    error = data.error;
+  } else if (data?.data) {
+    console.log('✅ [ES] Campaign found:', data.data.title);
+    campaign = data.data;
   } else {
-    campaign = result.data
+    console.log('⚠️ [ES] No data returned');
+    error = 'No campaign data';
   }
 } catch (e) {
-  console.error('Error:', e)
-  error = e
+  console.error('💥 [ES] Exception:', e);
+  error = e;
 }
+
+console.log('🎯 [ES] Final campaign:', campaign ? campaign.title : 'NULL');
+console.log('🚨 [ES] Final error:', error);
 
 // If campaign not found, redirect to 404
 if (!campaign || error) {
-  return Astro.redirect('/404');
+  console.log('⚠️ [ES] Redirecting to /es/404');
+  return Astro.redirect('/es/404');
 }
+
+console.log('✅ [ES] Campaign loaded successfully');
 
 // Calculate progress
 const progress = campaign.goal_amount > 0 
@@ -61,6 +70,8 @@ const hardCapProgress = (campaign.hard_cap && campaign.goal_amount > 0)
   ? (campaign.hard_cap / campaign.goal_amount) * 100 
   : 0;
 
+console.log('📊 [ES] Progress:', progress.toFixed(2) + '%');
+
 // Helper function for status text
 const getStatusText = (status: string) => {
   const key = `status${status.charAt(0).toUpperCase() + status.slice(1)}` as 
@@ -68,12 +79,15 @@ const getStatusText = (status: string) => {
   return t[key] || status;
 };
 
-// Get primary image or fallback
-const primaryImage = campaign.images?.find((img: any) => img.is_primary) || campaign.images?.[0];
+// Images
+const primaryImage = campaign.primaryImage;
 const campaignImages = campaign.images?.filter((img: any) => img.image_type !== 'diagnosis') || [];
 const diagnosisImages = campaign.images?.filter((img: any) => img.image_type === 'diagnosis') || [];
----
 
+console.log('🖼️ [ES] Primary image:', primaryImage?.image_url || 'NONE');
+console.log('🖼️ [ES] Campaign images:', campaignImages.length);
+console.log('==========================================');
+---
 <Layout 
   title={`${campaign.title} - ${t.pageTitle}`}
   description={campaign.description.slice(0, 160)}
@@ -120,7 +134,7 @@ const diagnosisImages = campaign.images?.filter((img: any) => img.image_type ===
           <!-- Gallery Thumbnails -->
           {campaign.images.length > 1 && (
             <div class="gallery-thumbnails" data-animate>
-              {campaign.images.map((image, index) => (
+              {campaign.images.map((image: any, index: number) => (
                 <button class="thumbnail glass" data-image={index}>
                   <img src={image.image_url} alt={`Image ${index + 1}`} />
                 </button>
