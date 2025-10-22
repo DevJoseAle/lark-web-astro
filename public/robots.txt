@@ -1,0 +1,13 @@
+# public/robots.txt
+
+# Permitir todo a todos los crawlers
+User-agent: *
+Allow: /
+
+# Bloquear rutas privadas (si las tienes)
+Disallow: /api/
+Disallow: /admin/
+
+# Sitemap (CAMBIAR por tu dominio real)
+Sitemap: https://lark.app/sitemap-index.xml
+Sitemap: https://lark.app/sitemap-0.xml
