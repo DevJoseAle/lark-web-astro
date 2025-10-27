@@ -22,19 +22,19 @@ const userCountry = "US"; // ← CAMBIA ESTO PARA PROBAR
 // const userCountry = await detectUserCountry(Astro.request); // ← Descomentar para producción
 const userCurrency = getUserCurrency(userCountry);
 
-console.log("==========================================");
-console.log("🌍 User Country:", userCountry);
-console.log("💵 User Currency:", userCurrency);
-console.log("🔍 [EN] Campaign ID:", id);
-console.log("🔍 [EN] ID type:", typeof id);
-console.log("🔍 [EN] Calling Edge Function: get-campaign");
+// //console.log("==========================================");
+// //console.log("🌍 User Country:", userCountry);
+// //console.log("💵 User Currency:", userCurrency);
+// //console.log("🔍 [EN] Campaign ID:", id);
+// //console.log("🔍 [EN] ID type:", typeof id);
+// //console.log("🔍 [EN] Calling Edge Function: get-campaign");
 
 // Fetch campaign using Supabase client
 let campaign: any = null;
 let error: any = null;
 
 try {
-  console.log("📡 [EN] Invoking Edge Function...");
+  //console.log("📡 [EN] Invoking Edge Function...");
 
   const { data, error: fetchError } = await supabase.functions.invoke(
     "get-full-campaign",
@@ -43,8 +43,8 @@ try {
     },
   );
 
-  console.log("📦 [EN] Response data:", data);
-  console.log("❌ [EN] Response error:", fetchError);
+  //console.log("📦 [EN] Response data:", data);
+  //console.log("❌ [EN] Response error:", fetchError);
 
   if (fetchError) {
     console.error("🚨 [EN] Edge Function error:", fetchError);
@@ -53,10 +53,10 @@ try {
     console.error("🚨 [EN] Data contains error:", data.error);
     error = data.error;
   } else if (data?.data) {
-    console.log("✅ [EN] Campaign found:", data.data.title);
+    //console.log("✅ [EN] Campaign found:", data.data.title);
     campaign = data.data;
   } else {
-    console.log("⚠️ [EN] No data returned");
+    //console.log("⚠️ [EN] No data returned");
     error = "No campaign data";
   }
 } catch (e) {
@@ -64,23 +64,23 @@ try {
   error = e;
 }
 
-console.log("🎯 [EN] Final campaign:", campaign ? campaign.title : "NULL");
-console.log("🚨 [EN] Final error:", error);
+//console.log("🎯 [EN] Final campaign:", campaign ? campaign.title : "NULL");
+//console.log("🚨 [EN] Final error:", error);
 
 // If campaign not found, redirect to 404
 if (!campaign || error) {
-  console.log("⚠️ [EN] Redirecting to /404");
+  //console.log("⚠️ [EN] Redirecting to /404");
   return Astro.redirect("/404");
 }
 
-console.log("✅ [EN] Campaign loaded successfully");
+//console.log("✅ [EN] Campaign loaded successfully");
 
 // ✅ CONVERTIR MONTOS PARA DISPLAY
 const campaignCurrency = campaign.currency || "CLP";
 const displayCurrency = userCurrency;
 
-console.log("💰 Campaign Currency:", campaignCurrency);
-console.log("💵 Display Currency:", displayCurrency);
+//console.log("💰 Campaign Currency:", campaignCurrency);
+//console.log("💵 Display Currency:", displayCurrency);
 
 const goalAmountDisplay = convertCurrency(
   campaign.goal_amount,
@@ -105,14 +105,14 @@ const hardCapDisplay =
     ? convertCurrency(campaign.hard_cap, campaignCurrency, displayCurrency)
     : 0;
 
-console.log("🎯 Goal Amount Display:", goalAmountDisplay, displayCurrency);
-console.log(
-  "📊 Current Amount Display:",
-  currentAmountDisplay,
-  displayCurrency,
-);
-console.log("🎯 Soft Cap Display:", softCapDisplay, displayCurrency);
-console.log("🚀 Hard Cap Display:", hardCapDisplay, displayCurrency);
+//console.log("🎯 Goal Amount Display:", goalAmountDisplay, displayCurrency);
+//console.log(
+//   "📊 Current Amount Display:",
+//   currentAmountDisplay,
+//   displayCurrency,
+// );
+//console.log("🎯 Soft Cap Display:", softCapDisplay, displayCurrency);
+//console.log("🚀 Hard Cap Display:", hardCapDisplay, displayCurrency);
 
 // Calculate progress
 const progress =
@@ -130,7 +130,7 @@ const hardCapProgress =
     ? (campaign.hard_cap / campaign.goal_amount) * 100
     : 0;
 
-console.log("📊 [EN] Progress:", progress.toFixed(2) + "%");
+//console.log("📊 [EN] Progress:", progress.toFixed(2) + "%");
 
 // Helper function for status text
 const getStatusText = (status: string) => {
@@ -150,9 +150,9 @@ const campaignImages =
 const diagnosisImages =
   campaign.images?.filter((img: any) => img.image_type === "diagnosis") || [];
 
-console.log("🖼️ [EN] Primary image:", primaryImage?.image_url || "NONE");
-console.log("🖼️ [EN] Campaign images:", campaignImages.length);
-console.log("==========================================");
+//console.log("🖼️ [EN] Primary image:", primaryImage?.image_url || "NONE");
+//console.log("🖼️ [EN] Campaign images:", campaignImages.length);
+//console.log("==========================================");
 ---
 
 <Layout

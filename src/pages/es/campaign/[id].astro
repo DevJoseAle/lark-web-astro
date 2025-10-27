@@ -9,24 +9,24 @@ const { id } = Astro.params;
 const lang = 'es';
 const t = translations[lang].campaignDetail;
 
-console.log('==========================================');
-console.log('🔍 [ES] Campaign ID:', id);
-console.log('🔍 [ES] ID type:', typeof id);
-console.log('🔍 [ES] Calling Edge Function: get-campaign');
+//console.log('==========================================');
+//console.log('🔍 [ES] Campaign ID:', id);
+//console.log('🔍 [ES] ID type:', typeof id);
+//console.log('🔍 [ES] Calling Edge Function: get-campaign');
 
 // Fetch campaign using Supabase client
 let campaign: any = null;
 let error: any = null;
 
 try {
-  console.log('📡 [ES] Invoking Edge Function...');
+  //console.log('📡 [ES] Invoking Edge Function...');
   
   const { data, error: fetchError } = await supabase.functions.invoke('get-full-campaign', {
     body: { id: id }
   });
 
-  console.log('📦 [ES] Response data:', data);
-  console.log('❌ [ES] Response error:', fetchError);
+  //console.log('📦 [ES] Response data:', data);
+  //console.log('❌ [ES] Response error:', fetchError);
 
   if (fetchError) {
     console.error('🚨 [ES] Edge Function error:', fetchError);
@@ -35,10 +35,10 @@ try {
     console.error('🚨 [ES] Data contains error:', data.error);
     error = data.error;
   } else if (data?.data) {
-    console.log('✅ [ES] Campaign found:', data.data.title);
+    //console.log('✅ [ES] Campaign found:', data.data.title);
     campaign = data.data;
   } else {
-    console.log('⚠️ [ES] No data returned');
+    //console.log('⚠️ [ES] No data returned');
     error = 'No campaign data';
   }
 } catch (e) {
@@ -46,16 +46,16 @@ try {
   error = e;
 }
 
-console.log('🎯 [ES] Final campaign:', campaign ? campaign.title : 'NULL');
-console.log('🚨 [ES] Final error:', error);
+//console.log('🎯 [ES] Final campaign:', campaign ? campaign.title : 'NULL');
+//console.log('🚨 [ES] Final error:', error);
 
 // If campaign not found, redirect to 404
 if (!campaign || error) {
-  console.log('⚠️ [ES] Redirecting to /es/404');
+  //console.log('⚠️ [ES] Redirecting to /es/404');
   return Astro.redirect('/es/404');
 }
 
-console.log('✅ [ES] Campaign loaded successfully');
+//console.log('✅ [ES] Campaign loaded successfully');
 
 // Calculate progress
 const progress = campaign.goal_amount > 0 
@@ -70,7 +70,7 @@ const hardCapProgress = (campaign.hard_cap && campaign.goal_amount > 0)
   ? (campaign.hard_cap / campaign.goal_amount) * 100 
   : 0;
 
-console.log('📊 [ES] Progress:', progress.toFixed(2) + '%');
+//console.log('📊 [ES] Progress:', progress.toFixed(2) + '%');
 
 // Helper function for status text
 const getStatusText = (status: string) => {
@@ -84,9 +84,9 @@ const primaryImage = campaign.primaryImage;
 const campaignImages = campaign.images?.filter((img: any) => img.image_type !== 'diagnosis') || [];
 const diagnosisImages = campaign.images?.filter((img: any) => img.image_type === 'diagnosis') || [];
 
-console.log('🖼️ [ES] Primary image:', primaryImage?.image_url || 'NONE');
-console.log('🖼️ [ES] Campaign images:', campaignImages.length);
-console.log('==========================================');
+//console.log('🖼️ [ES] Primary image:', primaryImage?.image_url || 'NONE');
+//console.log('🖼️ [ES] Campaign images:', campaignImages.length);
+//console.log('==========================================');
 ---
 <Layout 
   title={`${campaign.title} - ${t.pageTitle}`}
