@@ -1,13 +1,14 @@
 // @ts-check
 
 import { defineConfig } from 'astro/config';
-import sitemap from '@astrojs/sitemap'; // 👈 NUEVO
+import sitemap from '@astrojs/sitemap';
+
 // https://astro.build/config
 export default defineConfig({
-    site: 'https://lark.app', // 👈 CAMBIAR por tu dominio real
+  site: 'https://l-ark.app', // 👈 ACTUALIZADO al dominio correcto
+  output: 'static', // 👈 NUEVO: Forzar build estático
   integrations: [
     sitemap({
-      // 👇 NUEVO: Configuración del sitemap
       i18n: {
         defaultLocale: 'en',
         locales: {
@@ -15,7 +16,6 @@ export default defineConfig({
           es: 'es',
         },
       },
-      // 👇 Opcional: Excluir páginas privadas
       filter: (page) => 
         !page.includes('/admin') && 
         !page.includes('/api'),

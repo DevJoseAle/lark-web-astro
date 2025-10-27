@@ -18,7 +18,7 @@ serve(async (req)=>{
   try {
     const body = await req.text();
     const event = await stripe.webhooks.constructEventAsync(body, signature, webhookSecret);
-    console.log('📥 Webhook event received:', event.type);
+    //console.log('📥 Webhook event received:', event.type);
     // Solo procesar checkout completado
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object;
@@ -29,7 +29,7 @@ serve(async (req)=>{
       const currency = (session.currency || 'usd').toUpperCase();
       const paymentIntentId = session.payment_intent;
       const customerEmail = session.customer_details?.email;
-      console.log('💰 Payment completed:', {
+      //console.log('💰 Payment completed:', {
         campaignId,
         amount,
         currency,
@@ -69,7 +69,7 @@ serve(async (req)=>{
           status: 500
         });
       }
-      console.log('✅ Donation saved:', donation.id);
+      //console.log('✅ Donation saved:', donation.id);
       // 2️⃣ Actualizar total_raised de la campaña
       const { error: updateError } = await supabase.from('campaigns').update({
         total_raised: supabase.rpc('increment_total_raised', {
@@ -86,7 +86,7 @@ serve(async (req)=>{
           total_raised: newTotal,
           updated_at: new Date().toISOString()
         }).eq('id', campaignId);
-        console.log('✅ Campaign total updated:', newTotal);
+        //console.log('✅ Campaign total updated:', newTotal);
       }
       // 3️⃣ TODO: Enviar notificación al owner (opcional)
       // await supabase.functions.invoke('send-notification', {
@@ -100,7 +100,7 @@ serve(async (req)=>{
       });
     }
     // Otros eventos de Stripe
-    console.log('ℹ️ Unhandled event type:', event.type);
+    //console.log('ℹ️ Unhandled event type:', event.type);
     return new Response(JSON.stringify({
       received: true
     }), {
