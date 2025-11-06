@@ -1,0 +1,10 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "com.devjoseale.lark",
+    "sha256_cert_fingerprints": [
+      "6B:27:1A:1D:39:B4:20:28:3F:45:C0:E6:9D:59:A5:6D:E7:EB:E3:B5:53:EC:28:C8:A4:E4:D6:E2:46:C9:38:EA"
+    ]
+  }
+}]
