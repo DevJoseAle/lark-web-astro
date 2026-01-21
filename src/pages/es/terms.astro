@@ -1,15 +1,79 @@
 ---
-// src/pages/es/terms.astro
-import { translations } from '../../i18n/translations';
-import Layout from '../../layouts/Layout.astro';
+import Layout from "../../layouts/Layout.astro";
+import { supabase } from "../../lib/supabase";
 
-const lang = 'es';
-const t = translations[lang].terms;
+// src/pages/terms.astro
+
+
+// Detectar idioma desde la URL o default a 'en'
+const lang = Astro.url.pathname.startsWith('/es') ? 'es' : 'en';
+
+// Fetch documento desde Supabase
+const { data: document, error } = await supabase
+  .from('legal_documents')
+  .select('*')
+  .eq('document_type', 'terms_and_conditions')
+  .eq('language', lang)
+  .eq('status', 'active')
+  .order('effective_date', { ascending: false, nullsFirst: false })
+  .limit(1)
+  .single();
+
+// Fallback en caso de error
+if (error || !document) {
+  console.error('Error fetching terms:', error);
+}
+
+// Extraer contenido del JSON
+const content = document?.content || {};
+const sections = content.sections || [];
+
+// Obtener URL del PDF
+const pdfUrl = document?.pdf_storage_path 
+  ? `${import.meta.env.PUBLIC_SUPABASE_URL}/storage/v1/object/public/legal-documents/${document.pdf_storage_path}`
+  : null;
+
+// Helper function to format paragraphs (converts bullet points to HTML)
+function formatParagraph(text: string): string {
+  if (!text) return '';
+  
+  // Check if it's a bullet list
+  if (text.includes('• ')) {
+    const lines = text.split('\n');
+    let html = '';
+    let inList = false;
+    
+    lines.forEach(line => {
+      if (line.trim().startsWith('• ')) {
+        if (!inList) {
+          html += '<div class="bullet-list">';
+          inList = true;
+        }
+        html += `<div class="bullet-item">${line.trim().substring(2)}</div>`;
+      } else {
+        if (inList) {
+          html += '</div>';
+          inList = false;
+        }
+        if (line.trim().endsWith(':')) {
+          html += `<div class="subsection-title">${line}</div>`;
+        } else if (line.trim()) {
+          html += `<span>${line}</span>`;
+        }
+      }
+    });
+    
+    if (inList) html += '</div>';
+    return html;
+  }
+  
+  return text;
+}
 ---
 
 <Layout 
-  title={t.pageTitle} 
-  description={t.pageDescription}
+  title={content.pageTitle || 'Terms & Conditions'} 
+  description={content.pageDescription || ''}
   lang={lang}
 >
   <!-- Background Orbs -->
@@ -20,33 +84,35 @@ const t = translations[lang].terms;
 
   <!-- Breadcrumb -->
   <div class="breadcrumb container">
-    <a href="/es">{t.breadcrumbHome}</a>
+    <a href={lang === 'es' ? '/es' : '/'}>{content.breadcrumbHome || 'Home'}</a>
     <span class="separator">›</span>
-    <span>{t.breadcrumbTerms}</span>
+    <span>{content.breadcrumbTerms || 'Terms & Conditions'}</span>
   </div>
 
   <!-- Hero Section -->
   <section class="hero">
     <div class="container">
       <div class="hero-content" data-animate>
-        <h1>{t.title}</h1>
-        <p class="subtitle">{t.subtitle}</p>
+        <h1>{content.title || 'Terms & Conditions'}</h1>
+        <p class="subtitle">{content.subtitle || ''}</p>
         <div class="meta">
           <span class="last-updated">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
               <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
               <path d="M12 6V12L16 14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
             </svg>
-            {t.lastUpdated}: 15 de enero, 2025
+            {lang === 'es' ? 'Última actualización' : 'Last updated'}: {content.lastUpdated || ''}
           </span>
-          <button class="download-pdf">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-              <path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M7 10L12 15L17 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M12 15V3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            {t.downloadPdf}
-          </button>
+          {pdfUrl && (
+            <a href={pdfUrl} target="_blank" rel="noopener noreferrer" class="download-pdf">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M7 10L12 15L17 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M12 15V3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              {content.downloadPdf || 'Download PDF'}
+            </a>
+          )}
         </div>
       </div>
     </div>
@@ -60,25 +126,13 @@ const t = translations[lang].terms;
         <!-- Sidebar - Desktop -->
         <aside class="sidebar" id="sidebar">
           <div class="sidebar-inner glass">
-            <h3>{t.tableOfContents}</h3>
+            <h3>{content.tableOfContents || 'Table of Contents'}</h3>
             <nav class="toc">
-              <a href="#section-1" class="toc-link active">1. Aceptación de Términos</a>
-              <a href="#section-2" class="toc-link">2. Definiciones</a>
-              <a href="#section-3" class="toc-link">3. Descripción del Servicio</a>
-              <a href="#section-4" class="toc-link">4. Registro de Usuario</a>
-              <a href="#section-5" class="toc-link">5. Suscripciones y Pagos</a>
-              <a href="#section-6" class="toc-link">6. Creación de Campañas</a>
-              <a href="#section-7" class="toc-link">7. Proceso de Causal</a>
-              <a href="#section-8" class="toc-link">8. Verificación KYC</a>
-              <a href="#section-9" class="toc-link">9. Uso Aceptable</a>
-              <a href="#section-10" class="toc-link">10. Propiedad Intelectual</a>
-              <a href="#section-11" class="toc-link">11. Limitación de Responsabilidad</a>
-              <a href="#section-12" class="toc-link">12. Indemnización</a>
-              <a href="#section-13" class="toc-link">13. Terminación</a>
-              <a href="#section-14" class="toc-link">14. Privacidad y Datos</a>
-              <a href="#section-15" class="toc-link">15. Cambios a los Términos</a>
-              <a href="#section-16" class="toc-link">16. Ley Aplicable</a>
-              <a href="#section-17" class="toc-link">17. Contacto</a>
+              {sections.map((section: any) => (
+                <a href={`#section-${section.number}`} class="toc-link">
+                  {section.number}. {section.title.replace(/^\d+\.\s*/, '')}
+                </a>
+              ))}
             </nav>
           </div>
         </aside>
@@ -86,159 +140,123 @@ const t = translations[lang].terms;
         <!-- Mobile TOC Dropdown -->
         <div class="mobile-toc">
           <button class="mobile-toc-toggle glass" id="mobile-toc-toggle">
-            <span>Ir a sección</span>
+            <span>{lang === 'es' ? 'Ir a sección' : 'Jump to section'}</span>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
               <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
           </button>
           <div class="mobile-toc-dropdown glass" id="mobile-toc-dropdown">
-            <a href="#section-1" class="toc-link">1. Aceptación de Términos</a>
-            <a href="#section-2" class="toc-link">2. Definiciones</a>
-            <a href="#section-3" class="toc-link">3. Descripción del Servicio</a>
-            <a href="#section-4" class="toc-link">4. Registro de Usuario</a>
-            <a href="#section-5" class="toc-link">5. Suscripciones y Pagos</a>
-            <a href="#section-6" class="toc-link">6. Creación de Campañas</a>
-            <a href="#section-7" class="toc-link">7. Proceso de Causal</a>
-            <a href="#section-8" class="toc-link">8. Verificación KYC</a>
-            <a href="#section-9" class="toc-link">9. Uso Aceptable</a>
-            <a href="#section-10" class="toc-link">10. Propiedad Intelectual</a>
-            <a href="#section-11" class="toc-link">11. Limitación de Responsabilidad</a>
-            <a href="#section-12" class="toc-link">12. Indemnización</a>
-            <a href="#section-13" class="toc-link">13. Terminación</a>
-            <a href="#section-14" class="toc-link">14. Privacidad y Datos</a>
-            <a href="#section-15" class="toc-link">15. Cambios a los Términos</a>
-            <a href="#section-16" class="toc-link">16. Ley Aplicable</a>
-            <a href="#section-17" class="toc-link">17. Contacto</a>
+            {sections.map((section: any) => (
+              <a href={`#section-${section.number}`} class="toc-link">
+                {section.number}. {section.title.replace(/^\d+\.\s*/, '')}
+              </a>
+            ))}
           </div>
         </div>
 
         <!-- Content Sections -->
         <main class="main-content">
-          
-          <section id="section-1" class="content-section glass" data-animate>
-            <h2>{t.section1.title}</h2>
-            <div class="section-content">
-              {t.section1.content.split('\n\n').map(p => <p>{p}</p>)}
-            </div>
-          </section>
-
-          <section id="section-2" class="content-section glass" data-animate>
-            <h2>{t.section2.title}</h2>
-            <div class="section-content">
-              {t.section2.content.split('\n\n').map(p => <p>{p}</p>)}
-            </div>
-          </section>
-
-          <section id="section-3" class="content-section glass" data-animate>
-            <h2>{t.section3.title}</h2>
-            <div class="section-content">
-              {t.section3.content.split('\n\n').map(p => <p>{p}</p>)}
-            </div>
-          </section>
-
-          <section id="section-4" class="content-section glass" data-animate>
-            <h2>{t.section4.title}</h2>
-            <div class="section-content">
-              {t.section4.content.split('\n\n').map(p => <p>{p}</p>)}
-            </div>
-          </section>
-
-          <section id="section-5" class="content-section glass" data-animate>
-            <h2>{t.section5.title}</h2>
-            <div class="section-content">
-              {t.section5.content.split('\n\n').map(p => <p>{p}</p>)}
-            </div>
-          </section>
-
-          <section id="section-6" class="content-section glass" data-animate>
-            <h2>{t.section6.title}</h2>
-            <div class="section-content">
-              {t.section6.content.split('\n\n').map(p => <p>{p}</p>)}
-            </div>
-          </section>
-
-          <section id="section-7" class="content-section glass" data-animate>
-            <h2>{t.section7.title}</h2>
-            <div class="section-content">
-              {t.section7.content.split('\n\n').map(p => <p>{p}</p>)}
-            </div>
-          </section>
-
-          <section id="section-8" class="content-section glass" data-animate>
-            <h2>{t.section8.title}</h2>
-            <div class="section-content">
-              {t.section8.content.split('\n\n').map(p => <p>{p}</p>)}
-            </div>
-          </section>
-
-          <section id="section-9" class="content-section glass" data-animate>
-            <h2>{t.section9.title}</h2>
-            <div class="section-content">
-              {t.section9.content.split('\n\n').map(p => <p>{p}</p>)}
-            </div>
-          </section>
-
-          <section id="section-10" class="content-section glass" data-animate>
-            <h2>{t.section10.title}</h2>
-            <div class="section-content">
-              {t.section10.content.split('\n\n').map(p => <p>{p}</p>)}
-            </div>
-          </section>
-
-          <section id="section-11" class="content-section glass" data-animate>
-            <h2>{t.section11.title}</h2>
-            <div class="section-content">
-              {t.section11.content.split('\n\n').map(p => <p>{p}</p>)}
-            </div>
-          </section>
-
-          <section id="section-12" class="content-section glass" data-animate>
-            <h2>{t.section12.title}</h2>
-            <div class="section-content">
-              {t.section12.content.split('\n\n').map(p => <p>{p}</p>)}
-            </div>
-          </section>
-
-          <section id="section-13" class="content-section glass" data-animate>
-            <h2>{t.section13.title}</h2>
-            <div class="section-content">
-              {t.section13.content.split('\n\n').map(p => <p>{p}</p>)}
-            </div>
-          </section>
-
-          <section id="section-14" class="content-section glass" data-animate>
-            <h2>{t.section14.title}</h2>
-            <div class="section-content">
-              {t.section14.content.split('\n\n').map(p => <p>{p}</p>)}
-            </div>
-          </section>
-
-          <section id="section-15" class="content-section glass" data-animate>
-            <h2>{t.section15.title}</h2>
-            <div class="section-content">
-              {t.section15.content.split('\n\n').map(p => <p>{p}</p>)}
-            </div>
-          </section>
-
-          <section id="section-16" class="content-section glass" data-animate>
-            <h2>{t.section16.title}</h2>
-            <div class="section-content">
-              {t.section16.content.split('\n\n').map(p => <p>{p}</p>)}
-            </div>
-          </section>
-
-          <section id="section-17" class="content-section glass" data-animate>
-            <h2>{t.section17.title}</h2>
-            <div class="section-content">
-              {t.section17.content.split('\n\n').map(p => <p>{p}</p>)}
-            </div>
-          </section>
-
+          {sections.map((section: any) => (
+            <section id={`section-${section.number}`} class="content-section glass" data-animate>
+              <h2>{section.number}. {section.title.replace(/^\d+\.\s*/, '')}</h2>
+              <div class="section-content">
+                {section.content.split('\n\n').map((paragraph: string) => (
+                  <p set:html={formatParagraph(paragraph)} />
+                ))}
+              </div>
+            </section>
+          ))}
         </main>
       </div>
     </div>
   </section>
 </Layout>
+
+<script>
+  // Intersection Observer for animations
+  const observerOptions = {
+    threshold: 0.1,
+    rootMargin: '0px 0px -50px 0px'
+  };
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, observerOptions);
+
+  document.querySelectorAll('[data-animate]').forEach(el => {
+    observer.observe(el);
+  });
+
+  // Active section tracking
+  const sections = document.querySelectorAll('.content-section');
+  const tocLinks = document.querySelectorAll('.toc-link');
+
+  const sectionObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const id = entry.target.id;
+        tocLinks.forEach(link => {
+          link.classList.remove('active');
+          if (link.getAttribute('href') === `#${id}`) {
+            link.classList.add('active');
+          }
+        });
+      }
+    });
+  }, {
+    threshold: 0.3,
+    rootMargin: '-100px 0px -50% 0px'
+  });
+
+  sections.forEach(section => {
+    sectionObserver.observe(section);
+  });
+
+  // Mobile TOC toggle
+  const mobileToggle = document.getElementById('mobile-toc-toggle');
+  const mobileDropdown = document.getElementById('mobile-toc-dropdown');
+
+  if (mobileToggle && mobileDropdown) {
+    mobileToggle.addEventListener('click', () => {
+      mobileDropdown.classList.toggle('open');
+    });
+
+    // Close dropdown when clicking a link
+    mobileDropdown.querySelectorAll('.toc-link').forEach(link => {
+      link.addEventListener('click', () => {
+        mobileDropdown.classList.remove('open');
+      });
+    });
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!mobileToggle.contains(e.target as Node) && !mobileDropdown.contains(e.target as Node)) {
+        mobileDropdown.classList.remove('open');
+      }
+    });
+  }
+
+  // Smooth scroll for anchor links
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+      e.preventDefault();
+      const href = this.getAttribute('href');
+      if (href) {
+        const target = document.querySelector(href);
+        if (target) {
+          target.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+          });
+        }
+      }
+    });
+  });
+</script>
 
 <style>
   /* Background Orbs */
@@ -372,6 +390,7 @@ const t = translations[lang].terms;
     font-weight: 500;
     cursor: pointer;
     transition: all 0.2s;
+    text-decoration: none;
   }
 
   .download-pdf:hover {
@@ -460,6 +479,7 @@ const t = translations[lang].terms;
     cursor: pointer;
     border: 1px solid rgba(255, 255, 255, 0.1);
     transition: all 0.2s;
+    background: transparent;
   }
 
   .mobile-toc-toggle:hover {
@@ -519,11 +539,35 @@ const t = translations[lang].terms;
     white-space: pre-line;
   }
 
-  /* Placeholder styling */
-  .section-content p:first-child::first-line {
-    color: rgba(255, 200, 100, 0.9);
-    font-weight: 500;
-    font-style: italic;
+  /* Formatting for bullet points and special content */
+  .section-content :global(strong) {
+    color: white;
+    font-weight: 600;
+  }
+
+  .section-content :global(.bullet-list) {
+    margin: 0.5rem 0;
+    padding-left: 1.5rem;
+  }
+
+  .section-content :global(.bullet-item) {
+    color: rgba(255, 255, 255, 0.85);
+    margin-bottom: 0.5rem;
+    position: relative;
+  }
+
+  .section-content :global(.bullet-item::before) {
+    content: "•";
+    color: var(--blue-primary);
+    position: absolute;
+    left: -1rem;
+  }
+
+  .section-content :global(.subsection-title) {
+    color: white;
+    font-weight: 600;
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
   }
 
   /* Animations */
@@ -580,94 +624,3 @@ const t = translations[lang].terms;
     }
   }
 </style>
-
-<script>
-  // Intersection Observer for animations
-  const observerOptions = {
-    threshold: 0.1,
-    rootMargin: '0px 0px -50px 0px'
-  };
-
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('visible');
-      }
-    });
-  }, observerOptions);
-
-  document.querySelectorAll('[data-animate]').forEach(el => {
-    observer.observe(el);
-  });
-
-  // Active section tracking
-  const sections = document.querySelectorAll('.content-section');
-  const tocLinks = document.querySelectorAll('.toc-link');
-
-  const sectionObserver = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        const id = entry.target.id;
-        tocLinks.forEach(link => {
-          link.classList.remove('active');
-          if (link.getAttribute('href') === `#${id}`) {
-            link.classList.add('active');
-          }
-        });
-      }
-    });
-  }, {
-    threshold: 0.5,
-    rootMargin: '-100px 0px -50% 0px'
-  });
-
-  sections.forEach(section => {
-    sectionObserver.observe(section);
-  });
-
-  // Mobile TOC toggle
-  const mobileToggle = document.getElementById('mobile-toc-toggle');
-  const mobileDropdown = document.getElementById('mobile-toc-dropdown');
-
-  if (mobileToggle && mobileDropdown) {
-    mobileToggle.addEventListener('click', () => {
-      mobileDropdown.classList.toggle('open');
-    });
-
-    // Close dropdown when clicking a link
-    mobileDropdown.querySelectorAll('.toc-link').forEach(link => {
-      link.addEventListener('click', () => {
-        mobileDropdown.classList.remove('open');
-      });
-    });
-
-    // Close dropdown when clicking outside
-    document.addEventListener('click', (e) => {
-      if (!mobileToggle.contains(e.target as Node) && !mobileDropdown.contains(e.target as Node)) {
-        mobileDropdown.classList.remove('open');
-      }
-    });
-  }
-
-  // Smooth scroll
-  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function (e) {
-      e.preventDefault();
-    //   const href = this.getAttribute('href');
-    //   if (href) {
-    //     const target = document.querySelector(href);
-    //     if (target) {
-    //       target.scrollIntoView({
-    //         behavior: 'smooth',
-    //         block: 'start'
-    //       });
-    //     }
-    //   }
-    });
-  });
-
-  // Download PDF placeholder
-  document.querySelector('.download-pdf')?.addEventListener('click', () => {
-    alert('La descarga de PDF se implementará pronto.');
-  });
-</script>
