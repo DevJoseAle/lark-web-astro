@@ -242,9 +242,10 @@ function formatParagraph(text: string): string {
 
   // Smooth scroll for anchor links
   document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function (e) {
+    anchor.addEventListener('click', function (e: Event) {
       e.preventDefault();
-      const href = this.getAttribute('href');
+      const targetAnchor = e.currentTarget as HTMLAnchorElement;
+      const href = targetAnchor.getAttribute('href');
       if (href) {
         const target = document.querySelector(href);
         if (target) {
