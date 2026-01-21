@@ -1,17 +1,79 @@
 ---
-import { translations } from "../../i18n/translations";
 import Layout from "../../layouts/Layout.astro";
+import { supabase } from "../../lib/supabase";
 
 // src/pages/privacy.astro
 
 
-const lang = 'en';
-const t = translations[lang].privacy;
+// Detectar idioma desde la URL o default a 'en'
+const lang = Astro.url.pathname.startsWith('/es') ? 'es' : 'en';
+
+// Fetch documento desde Supabase
+const { data: document, error } = await supabase
+  .from('legal_documents')
+  .select('*')
+  .eq('document_type', 'privacy_policy')
+  .eq('language', lang)
+  .eq('status', 'active')
+  .order('effective_date', { ascending: false, nullsFirst: false })
+  .limit(1)
+  .single();
+
+// Fallback en caso de error
+if (error || !document) {
+  console.error('Error fetching privacy policy:', error);
+}
+
+// Extraer contenido del JSON
+const content = document?.content || {};
+const sections = content.sections || [];
+
+// Obtener URL del PDF
+const pdfUrl = document?.pdf_storage_path 
+  ? `${import.meta.env.PUBLIC_SUPABASE_URL}/storage/v1/object/public/legal-documents/${document.pdf_storage_path}`
+  : null;
+
+// Helper function to format paragraphs (converts bullet points to HTML)
+function formatParagraph(text: string): string {
+  if (!text) return '';
+  
+  // Check if it's a bullet list
+  if (text.includes('• ')) {
+    const lines = text.split('\n');
+    let html = '';
+    let inList = false;
+    
+    lines.forEach(line => {
+      if (line.trim().startsWith('• ')) {
+        if (!inList) {
+          html += '<div class="bullet-list">';
+          inList = true;
+        }
+        html += `<div class="bullet-item">${line.trim().substring(2)}</div>`;
+      } else {
+        if (inList) {
+          html += '</div>';
+          inList = false;
+        }
+        if (line.trim().endsWith(':')) {
+          html += `<div class="subsection-title">${line}</div>`;
+        } else if (line.trim()) {
+          html += `<span>${line}</span>`;
+        }
+      }
+    });
+    
+    if (inList) html += '</div>';
+    return html;
+  }
+  
+  return text;
+}
 ---
 
 <Layout 
-  title={t.pageTitle} 
-  description={t.pageDescription}
+  title={content.pageTitle || 'Privacy Policy'} 
+  description={content.pageDescription || ''}
   lang={lang}
 >
   <!-- Background Orbs -->
@@ -22,60 +84,55 @@ const t = translations[lang].privacy;
 
   <!-- Breadcrumb -->
   <div class="breadcrumb container">
-    <a href="/">{t.breadcrumbHome}</a>
+    <a href={lang === 'es' ? '/es' : '/'}>{content.breadcrumbHome || 'Home'}</a>
     <span class="separator">›</span>
-    <span>{t.breadcrumbPrivacy}</span>
+    <span>{content.breadcrumbPrivacy || 'Privacy Policy'}</span>
   </div>
 
   <!-- Hero Section -->
   <section class="hero">
     <div class="container">
       <div class="hero-content" data-animate>
-        <h1>{t.title}</h1>
-        <p class="subtitle">{t.subtitle}</p>
+        <h1>{content.title || 'Privacy Policy'}</h1>
+        <p class="subtitle">{content.subtitle || ''}</p>
         <div class="meta">
           <span class="last-updated">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
               <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
               <path d="M12 6V12L16 14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
             </svg>
-            {t.lastUpdated}: January 15, 2025
+            {lang === 'es' ? 'Última actualización' : 'Last updated'}: {content.lastUpdated || ''}
           </span>
-          <button class="download-pdf">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-              <path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M7 10L12 15L17 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M12 15V3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            {t.downloadPdf}
-          </button>
+          {pdfUrl && (
+            <a href={pdfUrl} target="_blank" rel="noopener noreferrer" class="download-pdf">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M7 10L12 15L17 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M12 15V3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              {content.downloadPdf || 'Download PDF'}
+            </a>
+          )}
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Privacy Content -->
-  <section class="privacy-content">
+  <!-- Main Content -->
+  <section class="terms-content">
     <div class="container">
       <div class="content-wrapper">
         
         <!-- Sidebar - Desktop -->
         <aside class="sidebar" id="sidebar">
           <div class="sidebar-inner glass">
-            <h3>{t.tableOfContents}</h3>
+            <h3>{content.tableOfContents || 'Table of Contents'}</h3>
             <nav class="toc">
-              <a href="#section-1" class="toc-link active">1. Information We Collect</a>
-              <a href="#section-2" class="toc-link">2. How We Use Your Information</a>
-              <a href="#section-3" class="toc-link">3. Information Sharing</a>
-              <a href="#section-4" class="toc-link">4. Data Security</a>
-              <a href="#section-5" class="toc-link">5. Data Retention</a>
-              <a href="#section-6" class="toc-link">6. Your Rights</a>
-              <a href="#section-7" class="toc-link">7. Cookies & Tracking</a>
-              <a href="#section-8" class="toc-link">8. International Transfers</a>
-              <a href="#section-9" class="toc-link">9. Children's Privacy</a>
-              <a href="#section-10" class="toc-link">10. Third-Party Services</a>
-              <a href="#section-11" class="toc-link">11. Policy Changes</a>
-              <a href="#section-12" class="toc-link">12. Contact Us</a>
+              {sections.map((section: any) => (
+                <a href={`#section-${section.number}`} class="toc-link">
+                  {section.number}. {section.title.replace(/^\d+\.\s*/, '')}
+                </a>
+              ))}
             </nav>
           </div>
         </aside>
@@ -83,122 +140,127 @@ const t = translations[lang].privacy;
         <!-- Mobile TOC Dropdown -->
         <div class="mobile-toc">
           <button class="mobile-toc-toggle glass" id="mobile-toc-toggle">
-            <span>Jump to section</span>
+            <span>{lang === 'es' ? 'Ir a sección' : 'Jump to section'}</span>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
               <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
           </button>
           <div class="mobile-toc-dropdown glass" id="mobile-toc-dropdown">
-            <a href="#section-1" class="toc-link">1. Information We Collect</a>
-            <a href="#section-2" class="toc-link">2. How We Use Your Information</a>
-            <a href="#section-3" class="toc-link">3. Information Sharing</a>
-            <a href="#section-4" class="toc-link">4. Data Security</a>
-            <a href="#section-5" class="toc-link">5. Data Retention</a>
-            <a href="#section-6" class="toc-link">6. Your Rights</a>
-            <a href="#section-7" class="toc-link">7. Cookies & Tracking</a>
-            <a href="#section-8" class="toc-link">8. International Transfers</a>
-            <a href="#section-9" class="toc-link">9. Children's Privacy</a>
-            <a href="#section-10" class="toc-link">10. Third-Party Services</a>
-            <a href="#section-11" class="toc-link">11. Policy Changes</a>
-            <a href="#section-12" class="toc-link">12. Contact Us</a>
+            {sections.map((section: any) => (
+              <a href={`#section-${section.number}`} class="toc-link">
+                {section.number}. {section.title.replace(/^\d+\.\s*/, '')}
+              </a>
+            ))}
           </div>
         </div>
 
         <!-- Content Sections -->
         <main class="main-content">
-          
-          <section id="section-1" class="content-section glass" data-animate>
-            <h2>{t.section1.title}</h2>
-            <div class="section-content">
-              {t.section1.content.split('\n\n').map(p => <p>{p}</p>)}
-            </div>
-          </section>
-
-          <section id="section-2" class="content-section glass" data-animate>
-            <h2>{t.section2.title}</h2>
-            <div class="section-content">
-              {t.section2.content.split('\n\n').map(p => <p>{p}</p>)}
-            </div>
-          </section>
-
-          <section id="section-3" class="content-section glass" data-animate>
-            <h2>{t.section3.title}</h2>
-            <div class="section-content">
-              {t.section3.content.split('\n\n').map(p => <p>{p}</p>)}
-            </div>
-          </section>
-
-          <section id="section-4" class="content-section glass" data-animate>
-            <h2>{t.section4.title}</h2>
-            <div class="section-content">
-              {t.section4.content.split('\n\n').map(p => <p>{p}</p>)}
-            </div>
-          </section>
-
-          <section id="section-5" class="content-section glass" data-animate>
-            <h2>{t.section5.title}</h2>
-            <div class="section-content">
-              {t.section5.content.split('\n\n').map(p => <p>{p}</p>)}
-            </div>
-          </section>
-
-          <section id="section-6" class="content-section glass" data-animate>
-            <h2>{t.section6.title}</h2>
-            <div class="section-content">
-              {t.section6.content.split('\n\n').map(p => <p>{p}</p>)}
-            </div>
-          </section>
-
-          <section id="section-7" class="content-section glass" data-animate>
-            <h2>{t.section7.title}</h2>
-            <div class="section-content">
-              {t.section7.content.split('\n\n').map(p => <p>{p}</p>)}
-            </div>
-          </section>
-
-          <section id="section-8" class="content-section glass" data-animate>
-            <h2>{t.section8.title}</h2>
-            <div class="section-content">
-              {t.section8.content.split('\n\n').map(p => <p>{p}</p>)}
-            </div>
-          </section>
-
-          <section id="section-9" class="content-section glass" data-animate>
-            <h2>{t.section9.title}</h2>
-            <div class="section-content">
-              {t.section9.content.split('\n\n').map(p => <p>{p}</p>)}
-            </div>
-          </section>
-
-          <section id="section-10" class="content-section glass" data-animate>
-            <h2>{t.section10.title}</h2>
-            <div class="section-content">
-              {t.section10.content.split('\n\n').map(p => <p>{p}</p>)}
-            </div>
-          </section>
-
-          <section id="section-11" class="content-section glass" data-animate>
-            <h2>{t.section11.title}</h2>
-            <div class="section-content">
-              {t.section11.content.split('\n\n').map(p => <p>{p}</p>)}
-            </div>
-          </section>
-
-          <section id="section-12" class="content-section glass" data-animate>
-            <h2>{t.section12.title}</h2>
-            <div class="section-content">
-              {t.section12.content.split('\n\n').map(p => <p>{p}</p>)}
-            </div>
-          </section>
-
+          {sections.map((section: any) => (
+            <section id={`section-${section.number}`} class="content-section glass" data-animate>
+              <h2>{section.number}. {section.title.replace(/^\d+\.\s*/, '')}</h2>
+              <div class="section-content">
+                {section.content.split('\n\n').map((paragraph: string) => (
+                  <p set:html={formatParagraph(paragraph)} />
+                ))}
+              </div>
+            </section>
+          ))}
         </main>
       </div>
     </div>
   </section>
 </Layout>
 
+<script>
+  // Intersection Observer for animations
+  const observerOptions = {
+    threshold: 0.1,
+    rootMargin: '0px 0px -50px 0px'
+  };
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, observerOptions);
+
+  document.querySelectorAll('[data-animate]').forEach(el => {
+    observer.observe(el);
+  });
+
+  // Active section tracking
+  const sections = document.querySelectorAll('.content-section');
+  const tocLinks = document.querySelectorAll('.toc-link');
+
+  const sectionObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const id = entry.target.id;
+        tocLinks.forEach(link => {
+          link.classList.remove('active');
+          if (link.getAttribute('href') === `#${id}`) {
+            link.classList.add('active');
+          }
+        });
+      }
+    });
+  }, {
+    threshold: 0.3,
+    rootMargin: '-100px 0px -50% 0px'
+  });
+
+  sections.forEach(section => {
+    sectionObserver.observe(section);
+  });
+
+  // Mobile TOC toggle
+  const mobileToggle = document.getElementById('mobile-toc-toggle');
+  const mobileDropdown = document.getElementById('mobile-toc-dropdown');
+
+  if (mobileToggle && mobileDropdown) {
+    mobileToggle.addEventListener('click', () => {
+      mobileDropdown.classList.toggle('open');
+    });
+
+    // Close dropdown when clicking a link
+    mobileDropdown.querySelectorAll('.toc-link').forEach(link => {
+      link.addEventListener('click', () => {
+        mobileDropdown.classList.remove('open');
+      });
+    });
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!mobileToggle.contains(e.target as Node) && !mobileDropdown.contains(e.target as Node)) {
+        mobileDropdown.classList.remove('open');
+      }
+    });
+  }
+
+  // Smooth scroll for anchor links
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e: Event) {
+      e.preventDefault();
+      const targetAnchor = e.currentTarget as HTMLAnchorElement;
+      const href = targetAnchor.getAttribute('href');
+      if (href) {
+        const target = document.querySelector(href);
+        if (target) {
+          target.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+          });
+        }
+      }
+    });
+  });
+</script>
+
 <style>
-  /* Estilos idénticos a Terms - Reutilizamos el mismo diseño */
+  /* Background Orbs */
   .orbs {
     position: fixed;
     inset: 0;
@@ -232,10 +294,15 @@ const t = translations[lang].privacy;
   }
 
   @keyframes float {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-20px); }
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-20px);
+    }
   }
 
+  /* Breadcrumb */
   .breadcrumb {
     padding: 2rem 0 1rem;
     position: relative;
@@ -264,6 +331,7 @@ const t = translations[lang].privacy;
     color: white;
   }
 
+  /* Hero */
   .hero {
     padding: 2rem 0 4rem;
     position: relative;
@@ -323,6 +391,7 @@ const t = translations[lang].privacy;
     font-weight: 500;
     cursor: pointer;
     transition: all 0.2s;
+    text-decoration: none;
   }
 
   .download-pdf:hover {
@@ -331,7 +400,8 @@ const t = translations[lang].privacy;
     transform: translateY(-2px);
   }
 
-  .privacy-content {
+  /* Terms Content */
+  .terms-content {
     padding: 2rem 0 6rem;
     position: relative;
     z-index: 1;
@@ -344,6 +414,7 @@ const t = translations[lang].privacy;
     align-items: start;
   }
 
+  /* Sidebar */
   .sidebar {
     position: sticky;
     top: 100px;
@@ -390,6 +461,7 @@ const t = translations[lang].privacy;
     font-weight: 500;
   }
 
+  /* Mobile TOC */
   .mobile-toc {
     display: none;
     position: relative;
@@ -408,6 +480,7 @@ const t = translations[lang].privacy;
     cursor: pointer;
     border: 1px solid rgba(255, 255, 255, 0.1);
     transition: all 0.2s;
+    background: transparent;
   }
 
   .mobile-toc-toggle:hover {
@@ -433,6 +506,7 @@ const t = translations[lang].privacy;
     display: flex;
   }
 
+  /* Main Content */
   .main-content {
     display: flex;
     flex-direction: column;
@@ -466,12 +540,38 @@ const t = translations[lang].privacy;
     white-space: pre-line;
   }
 
-  .section-content p:first-child::first-line {
-    color: rgba(255, 200, 100, 0.9);
-    font-weight: 500;
-    font-style: italic;
+  /* Formatting for bullet points and special content */
+  .section-content :global(strong) {
+    color: white;
+    font-weight: 600;
   }
 
+  .section-content :global(.bullet-list) {
+    margin: 0.5rem 0;
+    padding-left: 1.5rem;
+  }
+
+  .section-content :global(.bullet-item) {
+    color: rgba(255, 255, 255, 0.85);
+    margin-bottom: 0.5rem;
+    position: relative;
+  }
+
+  .section-content :global(.bullet-item::before) {
+    content: "•";
+    color: var(--blue-primary);
+    position: absolute;
+    left: -1rem;
+  }
+
+  .section-content :global(.subsection-title) {
+    color: white;
+    font-weight: 600;
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+  }
+
+  /* Animations */
   [data-animate] {
     opacity: 0;
     transform: translateY(20px);
@@ -483,6 +583,7 @@ const t = translations[lang].privacy;
     transform: translateY(0);
   }
 
+  /* Responsive */
   @media (max-width: 1024px) {
     .content-wrapper {
       grid-template-columns: 1fr;
@@ -524,82 +625,3 @@ const t = translations[lang].privacy;
     }
   }
 </style>
-
-<script>
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('visible');
-      }
-    });
-  }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
-
-  document.querySelectorAll('[data-animate]').forEach(el => {
-    observer.observe(el);
-  });
-
-  const sections = document.querySelectorAll('.content-section');
-  const tocLinks = document.querySelectorAll('.toc-link');
-
-  const sectionObserver = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        const id = entry.target.id;
-        tocLinks.forEach(link => {
-          link.classList.remove('active');
-          if (link.getAttribute('href') === `#${id}`) {
-            link.classList.add('active');
-          }
-        });
-      }
-    });
-  }, {
-    threshold: 0.5,
-    rootMargin: '-100px 0px -50% 0px'
-  });
-
-  sections.forEach(section => {
-    sectionObserver.observe(section);
-  });
-
-  const mobileToggle = document.getElementById('mobile-toc-toggle');
-  const mobileDropdown = document.getElementById('mobile-toc-dropdown');
-
-  if (mobileToggle && mobileDropdown) {
-    mobileToggle.addEventListener('click', () => {
-      mobileDropdown.classList.toggle('open');
-    });
-
-    mobileDropdown.querySelectorAll('.toc-link').forEach(link => {
-      link.addEventListener('click', () => {
-        mobileDropdown.classList.remove('open');
-      });
-    });
-
-    document.addEventListener('click', (e) => {
-      if (!mobileToggle.contains(e.target as Node) && !mobileDropdown.contains(e.target as Node)) {
-        mobileDropdown.classList.remove('open');
-      }
-    });
-  }
-
-  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function (e) {
-      e.preventDefault();
-    //   const href = this.getAttribute('href');
-    //   if (href) {
-    //     const target = document.querySelector(href);
-    //     if (target) {
-    //       target.scrollIntoView({
-    //         behavior: 'smooth',
-    //         block: 'start'
-    //       });
-    //     }
-    //   }
-    });
-  });
-
-  document.querySelector('.download-pdf')?.addEventListener('click', () => {
-    alert('PDF download will be implemented soon.');
-  });
-</script>
