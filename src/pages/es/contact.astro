@@ -692,7 +692,9 @@ const t = translations[lang].contact;
   }
 </style>
 
-<script>
+<!-- <script>
+ 
+
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
@@ -801,6 +803,178 @@ const t = translations[lang].contact;
         successMessage?.classList.add('show');
         submitBtn?.classList.remove('loading');
       }, 1000);
+    });
+  }
+
+  if (resetButton) {
+    resetButton.addEventListener('click', () => {
+      form.reset();
+      form.classList.remove('hide');
+      successMessage?.classList.remove('show');
+      ['name', 'email', 'subject', 'message'].forEach(clearError);
+    });
+  }
+
+  ['name', 'email', 'subject', 'message'].forEach(fieldId => {
+    const field = document.getElementById(fieldId);
+    field?.addEventListener('blur', () => {
+      if ((field as HTMLInputElement).value.trim()) {
+        clearError(fieldId);
+      }
+    });
+  });
+</script> -->
+
+<script>
+  const SUPABASE_URL = import.meta.env.PUBLIC_SUPABASE_URL;
+  const SUPABASE_ANON_KEY = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('[data-animate]').forEach(el => {
+    observer.observe(el);
+  });
+
+  const form = document.getElementById('contact-form') as HTMLFormElement;
+  const successMessage = document.getElementById('success-message');
+  const resetButton = document.getElementById('reset-form');
+
+  const messages = {
+    nameRequired: 'Por favor ingresa tu nombre',
+    emailRequired: 'Por favor ingresa tu email',
+    emailInvalid: 'Por favor ingresa un email válido',
+    subjectRequired: 'Por favor selecciona un asunto',
+    messageRequired: 'Por favor ingresa tu mensaje',
+    messageMinLength: 'El mensaje debe tener al menos 10 caracteres',
+    sendError: 'Error al enviar el mensaje. Por favor intenta de nuevo.'
+  };
+
+  function showError(fieldId: string, message: string) {
+    const field = document.getElementById(fieldId);
+    const errorEl = document.getElementById(`${fieldId}-error`);
+    if (field && errorEl) {
+      field.closest('.form-group')?.classList.add('error');
+      errorEl.textContent = message;
+    }
+  }
+
+  function clearError(fieldId: string) {
+    const field = document.getElementById(fieldId);
+    const errorEl = document.getElementById(`${fieldId}-error`);
+    if (field && errorEl) {
+      field.closest('.form-group')?.classList.remove('error');
+      errorEl.textContent = '';
+    }
+  }
+
+  function validateEmail(email: string): boolean {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  }
+
+  function validateForm(): boolean {
+    let isValid = true;
+
+    ['name', 'email', 'subject', 'message'].forEach(clearError);
+
+    const name = (document.getElementById('name') as HTMLInputElement).value.trim();
+    if (!name) {
+      showError('name', messages.nameRequired);
+      isValid = false;
+    }
+
+    const email = (document.getElementById('email') as HTMLInputElement).value.trim();
+    if (!email) {
+      showError('email', messages.emailRequired);
+      isValid = false;
+    } else if (!validateEmail(email)) {
+      showError('email', messages.emailInvalid);
+      isValid = false;
+    }
+
+    const subject = (document.getElementById('subject') as HTMLSelectElement).value;
+    if (!subject) {
+      showError('subject', messages.subjectRequired);
+      isValid = false;
+    }
+
+    const message = (document.getElementById('message') as HTMLTextAreaElement).value.trim();
+    if (!message) {
+      showError('message', messages.messageRequired);
+      isValid = false;
+    } else if (message.length < 10) {
+      showError('message', messages.messageMinLength);
+      isValid = false;
+    }
+
+    return isValid;
+  }
+
+  async function sendContactEmail(data: {
+    name: string;
+    email: string;
+    subject: string;
+    message: string;
+    lang: string;
+  }): Promise<{ success: boolean; error?: string }> {
+    try {
+      const response = await fetch(`${SUPABASE_URL}/functions/v1/send-contact-email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        },
+        body: JSON.stringify(data),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to send email');
+      }
+
+      return { success: true };
+    } catch (error) {
+      console.error('Error sending contact email:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  if (form) {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      if (!validateForm()) return;
+
+      const submitBtn = form.querySelector('.submit-button') as HTMLButtonElement;
+      submitBtn?.classList.add('loading');
+      submitBtn.disabled = true;
+
+      const formData = new FormData(form);
+      
+      const result = await sendContactEmail({
+        name: formData.get('name') as string,
+        email: formData.get('email') as string,
+        subject: formData.get('subject') as string,
+        message: formData.get('message') as string,
+        lang: 'es', // Cambiar a 'en' para la versión en inglés
+      });
+
+      submitBtn?.classList.remove('loading');
+      submitBtn.disabled = false;
+
+      if (result.success) {
+        form.classList.add('hide');
+        successMessage?.classList.add('show');
+      } else {
+        // Mostrar error
+        alert(messages.sendError);
+      }
     });
   }
 
